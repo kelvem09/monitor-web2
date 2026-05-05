@@ -1,0 +1,12 @@
+[
+  {
+    "sigla": "SINASC",
+    "nome": "Sistema de Informações sobre Nascidos Vivos",
+    "descricao": "Base de dados de nascidos vivos do Ministério da Saúde"
+  },
+  {
+    "sigla": "SIM",
+    "nome": "Sistema de Informações sobre Mortalidade",
+    "descricao": "Base de dados de óbitos do Ministério da Saúde"
+  }
+]

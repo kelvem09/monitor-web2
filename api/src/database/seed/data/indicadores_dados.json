@@ -1,0 +1,14 @@
+[
+  {
+    "id": 1,
+    "previsto_ods": true,
+    "meta_ods": "3.2",
+    "numero_ods": 3,
+    "nome": "Taxa de mortalidade infantil",
+    "descricao": "Indicador utilizado para acompanhar a ocorrência de óbitos infantis em relação aos nascidos vivos em determinado município e ano.",
+    "tema_id": 2,
+    "fonte": "SIM e SINASC",
+    "direcaoInterpretativa": "Quanto menor, melhor",
+    "status": "ATIVO"
+  }
+]
