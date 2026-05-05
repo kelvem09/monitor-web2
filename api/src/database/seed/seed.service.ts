@@ -204,8 +204,10 @@ export class SeedService implements OnModuleInit {
   }
 
   private async seedUsers(): Promise<void> {
+    const filePath = this.resolveJsonPath('users.json');
+    if (!filePath) return;
     const usersData: UserSeedData[] = JSON.parse(
-      fs.readFileSync(path.join(__dirname, 'data', 'users.json'), 'utf-8'),
+      fs.readFileSync(filePath, 'utf-8'),
     );
 
     for (const userData of usersData) {
@@ -232,18 +234,16 @@ export class SeedService implements OnModuleInit {
       return;
     }
 
+    const estadosPath = this.resolveJsonPath('estados.json');
+    const municipiosPath = this.resolveJsonPath('municipios-rn.json');
+    if (!estadosPath || !municipiosPath) return;
+
     const estadosData: EstadoSeedData[] = JSON.parse(
-      fs.readFileSync(
-        path.join(__dirname, 'data', 'estados.json'),
-        'utf-8',
-      ),
+      fs.readFileSync(estadosPath, 'utf-8'),
     );
 
     const municipiosData: MunicipioSeedData[] = JSON.parse(
-      fs.readFileSync(
-        path.join(__dirname, 'data', 'municipios-rn.json'),
-        'utf-8',
-      ),
+      fs.readFileSync(municipiosPath, 'utf-8'),
     );
 
     const estadosPersistidos: Record<number, Estado> = {};
