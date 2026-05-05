@@ -10,13 +10,20 @@ import { Municipio } from './municipios/entities/municipio.entity';
 import { EstadosModule } from './estados/estados.module';
 import { MunicipiosModule } from './municipios/municipios.module';
 import { SeedModule } from './database/seed/seed.module';
+import { BaseDados } from './bases/entities/base-dados.entity';
+import { ColunaBase } from './bases/entities/coluna-base.entity';
+import { BasesModule } from './bases/bases.module';
+import { Sinasc } from './sinasc/entities/sinasc.entity';
+import { SinascModule } from './sinasc/sinasc.module';
+import { Sim } from './sim/entities/sim.entity';
+import { SimModule } from './sim/sim.module';
 
 @Module({
   imports: [
     TypeOrmModule.forRoot({
       type: 'sqlite',
       database: ':memory:',
-      entities: [User, Estado, Municipio],
+      entities: [User, Estado, Municipio, BaseDados, ColunaBase, Sinasc, Sim],
       synchronize: true,
       dropSchema: true,
     }),
@@ -24,6 +31,9 @@ import { SeedModule } from './database/seed/seed.module';
     AuthModule,
     EstadosModule,
     MunicipiosModule,
+    BasesModule,
+    SinascModule,
+    SimModule,
     SeedModule,
   ],
   controllers: [AppController],

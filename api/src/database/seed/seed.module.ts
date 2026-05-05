@@ -3,10 +3,16 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Estado } from '../../estados/entities/estado.entity';
 import { Municipio } from '../../municipios/entities/municipio.entity';
 import { User } from '../../users/entities/user.entity';
+import { BaseDados } from '../../bases/entities/base-dados.entity';
+import { ColunaBase } from '../../bases/entities/coluna-base.entity';
+import { Sinasc } from '../../sinasc/entities/sinasc.entity';
+import { Sim } from '../../sim/entities/sim.entity';
 import { SeedService } from './seed.service';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Estado, Municipio, User])],
+  imports: [
+    TypeOrmModule.forFeature([Estado, Municipio, User, BaseDados, ColunaBase, Sinasc, Sim]),
+  ],
   providers: [SeedService],
 })
 export class SeedModule {}
