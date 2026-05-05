@@ -20,4 +20,5 @@ coverage
 .idea
 
 # Seed data (arquivos grandes)
-api/src/database/seed/data/*.json
+api/src/database/seed/data/mortalidade-2020-2024.json
+api/src/database/seed/data/sinasc-2020-2024.json

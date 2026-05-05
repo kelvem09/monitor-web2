@@ -17,13 +17,17 @@ import { Sinasc } from './sinasc/entities/sinasc.entity';
 import { SinascModule } from './sinasc/sinasc.module';
 import { Sim } from './sim/entities/sim.entity';
 import { SimModule } from './sim/sim.module';
+import { TemaIndicador } from './tema-indicador/entities/tema-indicador.entity';
+import { Indicador } from './indicadores/entities/indicador.entity';
+import { TemaIndicadorModule } from './tema-indicador/tema-indicador.module';
+import { IndicadoresModule } from './indicadores/indicadores.module';
 
 @Module({
   imports: [
     TypeOrmModule.forRoot({
       type: 'sqlite',
       database: ':memory:',
-      entities: [User, Estado, Municipio, BaseDados, ColunaBase, Sinasc, Sim],
+      entities: [User, Estado, Municipio, BaseDados, ColunaBase, Sinasc, Sim, TemaIndicador, Indicador],
       synchronize: true,
       dropSchema: true,
     }),
@@ -34,6 +38,8 @@ import { SimModule } from './sim/sim.module';
     BasesModule,
     SinascModule,
     SimModule,
+    TemaIndicadorModule,
+    IndicadoresModule,
     SeedModule,
   ],
   controllers: [AppController],

@@ -12,6 +12,8 @@ import { BaseDados } from '../../bases/entities/base-dados.entity';
 import { ColunaBase } from '../../bases/entities/coluna-base.entity';
 import { Sinasc } from '../../sinasc/entities/sinasc.entity';
 import { Sim } from '../../sim/entities/sim.entity';
+import { TemaIndicador } from '../../tema-indicador/entities/tema-indicador.entity';
+import { Indicador } from '../../indicadores/entities/indicador.entity';
 
 interface EstadoSeedData {
   codigo: number;
@@ -175,6 +177,10 @@ export class SeedService implements OnModuleInit {
     private readonly sinascRepository: Repository<Sinasc>,
     @InjectRepository(Sim)
     private readonly simRepository: Repository<Sim>,
+    @InjectRepository(TemaIndicador)
+    private readonly temaIndicadorRepository: Repository<TemaIndicador>,
+    @InjectRepository(Indicador)
+    private readonly indicadorRepository: Repository<Indicador>,
   ) {}
 
   async onModuleInit(): Promise<void> {
@@ -184,6 +190,8 @@ export class SeedService implements OnModuleInit {
     await this.seedColunasBases();
     await this.seedSinasc();
     await this.seedSim();
+    await this.seedTemasIndicadores();
+    await this.seedIndicadores();
   }
 
   private resolveJsonPath(filename: string): string | null {
@@ -551,6 +559,62 @@ export class SeedService implements OnModuleInit {
         }));
         await this.simRepository.insert(entities as any);
       }
+    }
+  }
+
+  private async seedTemasIndicadores(): Promise<void> {
+    const filePath = this.resolveJsonPath('temas_dados.json');
+    if (!filePath) return;
+
+    const count = await this.temaIndicadorRepository.count();
+    if (count > 0) return;
+
+    const temas: { id: number; nome: string }[] = JSON.parse(
+      fs.readFileSync(filePath, 'utf-8'),
+    );
+
+    await this.temaIndicadorRepository.save(temas);
+  }
+
+  private async seedIndicadores(): Promise<void> {
+    const filePath = this.resolveJsonPath('indicadores_dados.json');
+    if (!filePath) return;
+
+    const count = await this.indicadorRepository.count();
+    if (count > 0) return;
+
+    const items: {
+      id: number;
+      previsto_ods: boolean;
+      meta_ods: string;
+      numero_ods: number;
+      nome: string;
+      descricao: string;
+      tema_id: number;
+      fonte: string;
+      direcaoInterpretativa: string;
+      status: string;
+    }[] = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+
+    for (const item of items) {
+      const tema = await this.temaIndicadorRepository.findOne({
+        where: { id: item.tema_id },
+      });
+      if (!tema) continue;
+
+      const indicador = this.indicadorRepository.create({
+        previstoOds: item.previsto_ods,
+        metaOds: item.meta_ods,
+        numeroOds: item.numero_ods,
+        nome: item.nome,
+        descricao: item.descricao,
+        tema,
+        fonte: item.fonte,
+        direcaoInterpretativa: item.direcaoInterpretativa,
+        status: item.status,
+      });
+
+      await this.indicadorRepository.save(indicador);
     }
   }
 }
