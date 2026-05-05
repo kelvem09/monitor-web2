@@ -1,0 +1,17 @@
+[
+  {
+    "name": "Administrador",
+    "email": "admin@monitor.com",
+    "password": "123456",
+    "role": "ADMIN"
+  },
+
+  {
+    "name": "Gestor",
+    "email": "gestor@monitor.com",
+    "password": "123456",
+    "role": "GESTOR_PUBLICO"
+  }
+
+  
+]
