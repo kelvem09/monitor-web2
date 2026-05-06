@@ -1,5 +1,6 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom'
 import { Login } from './pages/Login'
+import { Mapa } from './pages/mapa/Mapa'
 import { EstadosList } from './pages/estados/EstadosList'
 import { EstadoForm } from './pages/estados/EstadoForm'
 import { MunicipiosList } from './pages/municipios/MunicipiosList'
@@ -9,7 +10,7 @@ import { ProtectedRoute } from './components/ProtectedRoute'
 export const router = createBrowserRouter([
   {
     path: '/',
-    element: <Navigate to="/admin/estados" replace />,
+    element: <Mapa />,
   },
   {
     path: '/login',
@@ -69,6 +70,6 @@ export const router = createBrowserRouter([
   },
   {
     path: '*',
-    element: <Navigate to="/admin/estados" replace />,
+    element: <Navigate to="/" replace />,
   },
 ])

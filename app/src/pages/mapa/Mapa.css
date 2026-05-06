@@ -1,0 +1,246 @@
+.mapa {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  min-height: 100svh;
+  background: var(--bg);
+}
+
+.mapa__body {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  flex: 1;
+  min-height: 0;
+}
+
+.mapa__sidebar {
+  border-right: 1px solid var(--line);
+  background: var(--bg-elev);
+  padding: 24px 22px;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.mapa__sidebar > .h-eyebrow {
+  margin-top: 14px;
+}
+
+.mapa__sidebar > .h-eyebrow:first-child {
+  margin-top: 0;
+}
+
+.mapa__indicadores {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.mapa__indicador {
+  text-align: left;
+  padding: 10px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--line);
+  background: var(--bg-elev);
+  color: var(--ink);
+  cursor: pointer;
+  font-family: inherit;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
+}
+
+.mapa__indicador:hover {
+  border-color: var(--ink-3);
+}
+
+.mapa__indicador--ativo,
+.mapa__indicador--ativo:hover {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--bg);
+}
+
+.mapa__indicador-nome {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.mapa__indicador-meta {
+  font-size: 11px;
+  opacity: 0.7;
+}
+
+.mapa__anos {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.mapa__ano {
+  cursor: pointer;
+  background: var(--bg-elev);
+}
+
+.mapa__hist {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 80px;
+  margin-bottom: 6px;
+}
+
+.mapa__hist > span {
+  flex: 1;
+  border-radius: 2px 2px 0 0;
+  min-height: 2px;
+}
+
+.mapa__hist-eixo {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: var(--ink-3);
+  margin-bottom: 14px;
+}
+
+.mapa__sobre {
+  padding: 14px 0 0;
+  border-top: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.mapa__sobre-desc {
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--ink-2);
+  margin: 0;
+}
+
+.mapa__sobre-chips {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.mapa__main {
+  padding: 24px 32px;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.mapa__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+.mapa__title {
+  font-size: 32px;
+  margin: 4px 0 0;
+}
+
+.mapa__actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.mapa__canvas {
+  padding: 14px;
+  position: relative;
+  flex: 1;
+  min-height: 480px;
+  display: flex;
+  overflow: hidden;
+}
+
+.mapa__map {
+  flex: 1;
+  border-radius: var(--r-sm);
+  overflow: hidden;
+}
+
+.mapa__zoom {
+  position: absolute;
+  top: 22px;
+  right: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  z-index: 2;
+}
+
+.mapa__zoom-btn {
+  width: 30px;
+  padding: 0;
+  justify-content: center;
+}
+
+.mapa__overlay {
+  position: absolute;
+  inset: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(247, 245, 240, 0.85);
+  color: var(--ink-3);
+  font-size: 13px;
+  border-radius: var(--r-sm);
+  pointer-events: none;
+}
+
+.mapa__overlay--erro {
+  color: var(--danger);
+}
+
+/* maplibre overrides */
+.mapa__map .maplibregl-canvas {
+  outline: none;
+}
+
+.mapa__map .maplibregl-ctrl-attrib {
+  background: rgba(255, 255, 255, 0.8);
+  font-size: 10px;
+}
+
+/* tooltip */
+.maplibregl-popup.mapa__popup .maplibregl-popup-content {
+  background: var(--ink);
+  color: var(--bg);
+  border-radius: 4px;
+  padding: 8px 10px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+}
+
+.maplibregl-popup.mapa__popup .maplibregl-popup-tip {
+  display: none;
+}
+
+.mapa__tooltip {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 120px;
+}
+
+.mapa__tooltip-title {
+  font-size: 11px;
+  font-weight: 500;
+  color: #fff;
+}
+
+.mapa__tooltip-value {
+  font-size: 11px;
+  color: #e6b894;
+}
