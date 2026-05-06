@@ -1,0 +1,45 @@
+.confirm {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.confirm__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(20, 20, 15, 0.45);
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.confirm__panel {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  padding: 24px;
+  background: var(--bg-elev);
+  box-shadow: 0 24px 48px -12px rgba(20, 20, 15, 0.25);
+}
+
+.confirm__title {
+  font-size: 22px;
+  margin-bottom: 8px;
+}
+
+.confirm__desc {
+  font-size: 13px;
+  color: var(--ink-2);
+  line-height: 1.5;
+  margin-bottom: 18px;
+}
+
+.confirm__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
