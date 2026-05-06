@@ -25,8 +25,6 @@ import { UserRole } from '../users/entities/role.enum';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { RolesGuard } from '../auth/roles.guard';
 
-console.log('DTO CLASS:', CreateIndicadorDto);
-
 @ApiTags('Indicadores')
 @Controller('indicadores')
 export class IndicadoresController {
