@@ -4,32 +4,32 @@ import { DirecaoInterpretativa } from '../entities/direcao-interpretativa.enum';
 
 export class IndicadorResponseDto {
   @ApiProperty()
-  id: number;
+  id!: number;
 
   @ApiProperty()
-  previstoOds: boolean;
+  previstoOds!: boolean;
 
   @ApiProperty({ nullable: true })
-  metaOds: string;
+  metaOds?: string;
 
   @ApiProperty({ nullable: true })
-  numeroOds: number;
+  numeroOds?: number;
 
   @ApiProperty()
-  nome: string;
+  nome!: string;
 
   @ApiProperty({ nullable: true })
-  descricao: string;
+  descricao?: string;
 
   @ApiProperty({ type: () => TemaIndicadorResponseDto })
-  tema: TemaIndicadorResponseDto;
+  tema!: TemaIndicadorResponseDto;
 
   @ApiProperty({ nullable: true })
-  fonte: string;
+  fonte?: string;
 
   @ApiProperty({ enum: DirecaoInterpretativa, nullable: true })
-  direcaoInterpretativa: DirecaoInterpretativa;
+  direcaoInterpretativa?: DirecaoInterpretativa;
 
   @ApiProperty()
-  status: string;
+  status!: string;
 }
