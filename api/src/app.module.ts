@@ -11,7 +11,6 @@ import { EstadosModule } from './estados/estados.module';
 import { MunicipiosModule } from './municipios/municipios.module';
 import { SeedModule } from './database/seed/seed.module';
 import { BaseDados } from './bases/entities/base-dados.entity';
-import { ColunaBase } from './bases/entities/coluna-base.entity';
 import { BasesModule } from './bases/bases.module';
 import { Sinasc } from './sinasc/entities/sinasc.entity';
 import { SinascModule } from './sinasc/sinasc.module';
@@ -29,7 +28,7 @@ import { IndicadoresCalculadosModule } from './indicadores-calculados/indicadore
     TypeOrmModule.forRoot({
       type: 'sqlite',
       database: ':memory:',
-      entities: [User, Estado, Municipio, BaseDados, ColunaBase, Sinasc, Sim, TemaIndicador, Indicador, IndicadorCalculado],
+      entities: [User, Estado, Municipio, BaseDados, Sinasc, Sim, TemaIndicador, Indicador, IndicadorCalculado],
       synchronize: true,
       dropSchema: true,
     }),

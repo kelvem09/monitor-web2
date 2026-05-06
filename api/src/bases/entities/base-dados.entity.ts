@@ -2,11 +2,9 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
-  OneToMany,
   CreateDateColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { ColunaBase } from './coluna-base.entity';
 
 @Entity('bases_dados')
 export class BaseDados {
@@ -24,9 +22,6 @@ export class BaseDados {
 
   @Column({ default: true })
   ativa: boolean;
-
-  @OneToMany(() => ColunaBase, (coluna) => coluna.base)
-  colunas: ColunaBase[];
 
   @CreateDateColumn()
   createdAt: Date;
