@@ -14,6 +14,7 @@ import { Sinasc } from '../../sinasc/entities/sinasc.entity';
 import { Sim } from '../../sim/entities/sim.entity';
 import { TemaIndicador } from '../../tema-indicador/entities/tema-indicador.entity';
 import { Indicador } from '../../indicadores/entities/indicador.entity';
+import { DirecaoInterpretativa } from '../../indicadores/entities/direcao-interpretativa.enum';
 
 interface EstadoSeedData {
   codigo: number;
@@ -338,227 +339,219 @@ export class SeedService implements OnModuleInit {
   }
 
   private async seedSinasc(): Promise<void> {
-    for (let year = 2020; year <= 2024; year++) {
-      const filePath = this.resolveJsonPath(`sinasc-${year}.json`);
-      if (!filePath) continue;
+    const filePath = this.resolveJsonPath('sinasc-2020-2024.json');
+    if (!filePath) return;
 
-      const existingCount = await this.sinascRepository.count({
-        where: { ano: year },
-      });
-      if (existingCount > 0) continue;
+    const existingCount = await this.sinascRepository.count();
+    if (existingCount > 0) return;
 
-      const raw: unknown = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
-      let records: Record<string, unknown>[];
+    const raw: unknown = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+    let records: Record<string, unknown>[];
 
-      if (Array.isArray(raw)) {
-        records = raw as Record<string, unknown>[];
-      } else if (
-        raw &&
-        typeof raw === 'object' &&
-        'Base_nascidos_vivos' in raw &&
-        Array.isArray((raw as Record<string, unknown>)['Base_nascidos_vivos'])
-      ) {
-        records = (raw as Record<string, unknown[]>)[
-          'Base_nascidos_vivos'
-        ] as Record<string, unknown>[];
-      } else if (raw && typeof raw === 'object') {
-        const firstArray = Object.values(raw as object).find((v) =>
-          Array.isArray(v),
-        );
-        records = (firstArray as Record<string, unknown>[]) ?? [];
-      } else {
-        records = [];
-      }
+    if (Array.isArray(raw)) {
+      records = raw as Record<string, unknown>[];
+    } else if (
+      raw &&
+      typeof raw === 'object' &&
+      'Base_nascidos_vivos' in raw &&
+      Array.isArray((raw as Record<string, unknown>)['Base_nascidos_vivos'])
+    ) {
+      records = (raw as Record<string, unknown[]>)[
+        'Base_nascidos_vivos'
+      ] as Record<string, unknown>[];
+    } else if (raw && typeof raw === 'object') {
+      const firstArray = Object.values(raw as object).find((v) =>
+        Array.isArray(v),
+      );
+      records = (firstArray as Record<string, unknown>[]) ?? [];
+    } else {
+      records = [];
+    }
 
-      const seen = new Set<string>();
-      const unique = records.filter((item) => {
-        const key = `${item.contador}-${item.ano ?? year}`;
-        if (seen.has(key)) return false;
-        seen.add(key);
-        return true;
-      });
+    const seen = new Set<string>();
+    const unique = records.filter((item) => {
+      const key = `${item.contador}-${item.ano}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
 
-      const CHUNK = 1000;
-      for (let i = 0; i < unique.length; i += CHUNK) {
-        const chunk = unique.slice(i, i + CHUNK);
-        const entities = chunk.map((item) => ({
-          contador: Number(item.contador),
-          ano: Number(item.ano ?? year),
-          locnasc: (item.LOCNASC as string) ?? null,
-          codmunnasc: (item.CODMUNNASC as string) ?? null,
-          idademae: item.IDADEMAE != null ? Number(item.IDADEMAE) : null,
-          estcivmae: (item.ESTCIVMAE as string) ?? null,
-          escmae: (item.ESCMAE as string) ?? null,
-          codocupmae: (item.CODOCUPMAE as string) ?? null,
-          qtdfilvivo:
-            item.QTDFILVIVO != null ? Number(item.QTDFILVIVO) : null,
-          qtdfilmort:
-            item.QTDFILMORT != null ? Number(item.QTDFILMORT) : null,
-          codmunres: (item.CODMUNRES as string) ?? null,
-          gestacao: (item.GESTACAO as string) ?? null,
-          gravidez: (item.GRAVIDEZ as string) ?? null,
-          parto: (item.PARTO as string) ?? null,
-          consultas: (item.CONSULTAS as string) ?? null,
-          dtnasc: (item.DTNASC as string) ?? null,
-          sexo: (item.SEXO as string) ?? null,
-          apgar1: item.APGAR1 != null ? Number(item.APGAR1) : null,
-          apgar5: item.APGAR5 != null ? Number(item.APGAR5) : null,
-          racacor: (item.RACACOR as string) ?? null,
-          peso: item.PESO != null ? Number(item.PESO) : null,
-          codestab: (item.CODESTAB as string) ?? null,
-          naturalmae: (item.NATURALMAE as string) ?? null,
-          codmunnatu: (item.CODMUNNATU as string) ?? null,
-          tpnascassi: (item.TPNASCASSI as string) ?? null,
-          consprenat:
-            item.CONSPRENAT != null ? Number(item.CONSPRENAT) : null,
-          mesprenat: item.MESPRENAT != null ? Number(item.MESPRENAT) : null,
-          idanomal: (item.IDANOMAL as string) ?? null,
-          semagestac: (item.SEMAGESTAC as string) ?? null,
-        }));
-        await this.sinascRepository.insert(entities as any);
-      }
+    const CHUNK = 200;
+    for (let i = 0; i < unique.length; i += CHUNK) {
+      const chunk = unique.slice(i, i + CHUNK);
+      const entities = chunk.map((item) => ({
+        contador: Number(item.contador),
+        ano: Number(item.ano),
+        locnasc: (item.LOCNASC as string) ?? null,
+        codmunnasc: (item.CODMUNNASC as string) ?? null,
+        idademae: item.IDADEMAE != null ? Number(item.IDADEMAE) : null,
+        estcivmae: (item.ESTCIVMAE as string) ?? null,
+        escmae: (item.ESCMAE as string) ?? null,
+        codocupmae: (item.CODOCUPMAE as string) ?? null,
+        qtdfilvivo:
+          item.QTDFILVIVO != null ? Number(item.QTDFILVIVO) : null,
+        qtdfilmort:
+          item.QTDFILMORT != null ? Number(item.QTDFILMORT) : null,
+        codmunres: (item.CODMUNRES as string) ?? null,
+        gestacao: (item.GESTACAO as string) ?? null,
+        gravidez: (item.GRAVIDEZ as string) ?? null,
+        parto: (item.PARTO as string) ?? null,
+        consultas: (item.CONSULTAS as string) ?? null,
+        dtnasc: (item.DTNASC as string) ?? null,
+        sexo: (item.SEXO as string) ?? null,
+        apgar1: item.APGAR1 != null ? Number(item.APGAR1) : null,
+        apgar5: item.APGAR5 != null ? Number(item.APGAR5) : null,
+        racacor: (item.RACACOR as string) ?? null,
+        peso: item.PESO != null ? Number(item.PESO) : null,
+        codestab: (item.CODESTAB as string) ?? null,
+        naturalmae: (item.NATURALMAE as string) ?? null,
+        codmunnatu: (item.CODMUNNATU as string) ?? null,
+        tpnascassi: (item.TPNASCASSI as string) ?? null,
+        consprenat:
+          item.CONSPRENAT != null ? Number(item.CONSPRENAT) : null,
+        mesprenat: item.MESPRENAT != null ? Number(item.MESPRENAT) : null,
+        idanomal: (item.IDANOMAL as string) ?? null,
+        semagestac: (item.SEMAGESTAC as string) ?? null,
+      }));
+      await this.sinascRepository.insert(entities as any);
     }
   }
 
   private async seedSim(): Promise<void> {
-    for (let year = 2020; year <= 2024; year++) {
-      const filePath = this.resolveJsonPath(`sim-${year}.json`);
-      if (!filePath) continue;
+    const filePath = this.resolveJsonPath('mortalidade-2020-2024.json');
+    if (!filePath) return;
 
-      const existingCount = await this.simRepository.count({
-        where: { ano: year },
-      });
-      if (existingCount > 0) continue;
+    const existingCount = await this.simRepository.count();
+    if (existingCount > 0) return;
 
-      const raw: unknown = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
-      let records: Record<string, unknown>[];
+    const raw: unknown = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+    let records: Record<string, unknown>[];
 
-      if (Array.isArray(raw)) {
-        records = raw as Record<string, unknown>[];
-      } else if (
-        raw &&
-        typeof raw === 'object' &&
-        'Base_obitos' in raw &&
-        Array.isArray((raw as Record<string, unknown>)['Base_obitos'])
-      ) {
-        records = (raw as Record<string, unknown[]>)[
-          'Base_obitos'
-        ] as Record<string, unknown>[];
-      } else if (raw && typeof raw === 'object') {
-        const firstArray = Object.values(raw as object).find((v) =>
-          Array.isArray(v),
-        );
-        records = (firstArray as Record<string, unknown>[]) ?? [];
-      } else {
-        records = [];
-      }
+    if (Array.isArray(raw)) {
+      records = raw as Record<string, unknown>[];
+    } else if (
+      raw &&
+      typeof raw === 'object' &&
+      'Base_obitos' in raw &&
+      Array.isArray((raw as Record<string, unknown>)['Base_obitos'])
+    ) {
+      records = (raw as Record<string, unknown[]>)[
+        'Base_obitos'
+      ] as Record<string, unknown>[];
+    } else if (raw && typeof raw === 'object') {
+      const firstArray = Object.values(raw as object).find((v) =>
+        Array.isArray(v),
+      );
+      records = (firstArray as Record<string, unknown>[]) ?? [];
+    } else {
+      records = [];
+    }
 
-      const seen = new Set<string>();
-      const unique = records.filter((item) => {
-        const key = `${item.contador}-${item.ano ?? year}`;
-        if (seen.has(key)) return false;
-        seen.add(key);
-        return true;
-      });
+    const seen = new Set<string>();
+    const unique = records.filter((item) => {
+      const key = `${item.contador}-${item.ano}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
 
-      const CHUNK = 1000;
-      for (let i = 0; i < unique.length; i += CHUNK) {
-        const chunk = unique.slice(i, i + CHUNK);
-        const entities = chunk.map((item) => ({
-          contador: Number(item.contador),
-          origem: (item.origem as string) ?? null,
-          tipobito: (item.tipobito as string) ?? null,
-          dtobito: (item.dtobito as string) ?? null,
-          horaobito: (item.horaobito as string) ?? null,
-          natural: (item.natural as string) ?? null,
-          codmunnatu: (item.codmunnatu as string) ?? null,
-          dtnasc: (item.dtnasc as string) ?? null,
-          idade: (item.idade as string) ?? null,
-          sexo: (item.sexo as string) ?? null,
-          racacor: (item.racacor as string) ?? null,
-          estciv: (item.estciv as string) ?? null,
-          esc: (item.esc as string) ?? null,
-          esc2010: (item.esc2010 as string) ?? null,
-          seriescfal: (item.seriescfal as string) ?? null,
-          ocup: (item.ocup as string) ?? null,
-          codmunres: (item.codmunres as string) ?? null,
-          lococor: (item.lococor as string) ?? null,
-          codestab: (item.codestab as string) ?? null,
-          codmunocor: (item.codmunocor as string) ?? null,
-          idademae: (item.idademae as string) ?? null,
-          escmae: (item.escmae as string) ?? null,
-          escmae2010: (item.escmae2010 as string) ?? null,
-          seriescmae: (item.seriescmae as string) ?? null,
-          ocupmae: (item.ocupmae as string) ?? null,
-          qtdfilvivo: (item.qtdfilvivo as string) ?? null,
-          qtdfilmort: (item.qtdfilmort as string) ?? null,
-          gravidez: (item.gravidez as string) ?? null,
-          semagestac: (item.semagestac as string) ?? null,
-          gestacao: (item.gestacao as string) ?? null,
-          parto: (item.parto as string) ?? null,
-          obitoparto: (item.obitoparto as string) ?? null,
-          peso: item.peso != null ? Number(item.peso) : null,
-          tpmorteoco: (item.tpmorteoco as string) ?? null,
-          obitograv: (item.obitograv as string) ?? null,
-          obitopuerp: (item.obitopuerp as string) ?? null,
-          assistmed: (item.assistmed as string) ?? null,
-          exame: (item.exame as string) ?? null,
-          cirurgia: (item.cirurgia as string) ?? null,
-          necropsia: (item.necropsia as string) ?? null,
-          linhaa: (item.linhaa as string) ?? null,
-          linhab: (item.linhab as string) ?? null,
-          linhac: (item.linhac as string) ?? null,
-          linhad: (item.linhad as string) ?? null,
-          linhaii: (item.linhaii as string) ?? null,
-          causabas: (item.causabas as string) ?? null,
-          cb_pre: (item.cb_pre as string) ?? null,
-          comunsvoim: (item.comunsvoim as string) ?? null,
-          dtatestado: (item.dtatestado as string) ?? null,
-          circobito: (item.circobito as string) ?? null,
-          acidtrab: (item.acidtrab as string) ?? null,
-          fonte: (item.fonte as string) ?? null,
-          numerolote: (item.numerolote as string) ?? null,
-          dtinvestig: (item.dtinvestig as string) ?? null,
-          dtcadastro: (item.dtcadastro as string) ?? null,
-          atestante: (item.atestante as string) ?? null,
-          stcodifica: (item.stcodifica as string) ?? null,
-          codificado: (item.codificado as string) ?? null,
-          versaosist: (item.versaosist as string) ?? null,
-          versaoscb: (item.versaoscb as string) ?? null,
-          fonteinv: (item.fonteinv as string) ?? null,
-          dtrecebim: (item.dtrecebim as string) ?? null,
-          atestado: (item.atestado as string) ?? null,
-          dtrecoriga: (item.dtrecoriga as string) ?? null,
-          opor_do: (item.opor_do as string) ?? null,
-          causamat: (item.causamat as string) ?? null,
-          escmaeagr1: (item.escmaeagr1 as string) ?? null,
-          escfalagr1: (item.escfalagr1 as string) ?? null,
-          stdoepidem: (item.stdoepidem as string) ?? null,
-          stdonova: (item.stdonova as string) ?? null,
-          difdata: (item.difdata as string) ?? null,
-          nudiasobco: (item.nudiasobco as string) ?? null,
-          dtcadinv: (item.dtcadinv as string) ?? null,
-          tpobitocor: (item.tpobitocor as string) ?? null,
-          dtconinv: (item.dtconinv as string) ?? null,
-          fontes: (item.fontes as string) ?? null,
-          tpresginfo: (item.tpresginfo as string) ?? null,
-          tpnivelinv: (item.tpnivelinv as string) ?? null,
-          dtcadinf: (item.dtcadinf as string) ?? null,
-          morteparto: (item.morteparto as string) ?? null,
-          dtconcaso: (item.dtconcaso as string) ?? null,
-          altcausa: (item.altcausa as string) ?? null,
-          causabas_o: (item.causabas_o as string) ?? null,
-          tppos: (item.tppos as string) ?? null,
-          tp_altera: (item.tp_altera as string) ?? null,
-          cb_alt: (item.cb_alt as string) ?? null,
-          ano: Number(item.ano ?? year),
-          nudiasinf: (item.nudiasinf as string) ?? null,
-          fontesinf: (item.fontesinf as string) ?? null,
-          nudiasobin: (item.nudiasobin as string) ?? null,
-          estabdescr: (item.estabdescr as string) ?? null,
-        }));
-        await this.simRepository.insert(entities as any);
-      }
+    const CHUNK = 200;
+    for (let i = 0; i < unique.length; i += CHUNK) {
+      const chunk = unique.slice(i, i + CHUNK);
+      const entities = chunk.map((item) => ({
+        contador: Number(item.contador),
+        origem: (item.origem as string) ?? null,
+        tipobito: (item.tipobito as string) ?? null,
+        dtobito: (item.dtobito as string) ?? null,
+        horaobito: (item.horaobito as string) ?? null,
+        natural: (item.natural as string) ?? null,
+        codmunnatu: (item.codmunnatu as string) ?? null,
+        dtnasc: (item.dtnasc as string) ?? null,
+        idade: (item.idade as string) ?? null,
+        sexo: (item.sexo as string) ?? null,
+        racacor: (item.racacor as string) ?? null,
+        estciv: (item.estciv as string) ?? null,
+        esc: (item.esc as string) ?? null,
+        esc2010: (item.esc2010 as string) ?? null,
+        seriescfal: (item.seriescfal as string) ?? null,
+        ocup: (item.ocup as string) ?? null,
+        codmunres: (item.codmunres as string) ?? null,
+        lococor: (item.lococor as string) ?? null,
+        codestab: (item.codestab as string) ?? null,
+        codmunocor: (item.codmunocor as string) ?? null,
+        idademae: (item.idademae as string) ?? null,
+        escmae: (item.escmae as string) ?? null,
+        escmae2010: (item.escmae2010 as string) ?? null,
+        seriescmae: (item.seriescmae as string) ?? null,
+        ocupmae: (item.ocupmae as string) ?? null,
+        qtdfilvivo: (item.qtdfilvivo as string) ?? null,
+        qtdfilmort: (item.qtdfilmort as string) ?? null,
+        gravidez: (item.gravidez as string) ?? null,
+        semagestac: (item.semagestac as string) ?? null,
+        gestacao: (item.gestacao as string) ?? null,
+        parto: (item.parto as string) ?? null,
+        obitoparto: (item.obitoparto as string) ?? null,
+        peso: item.peso != null ? Number(item.peso) : null,
+        tpmorteoco: (item.tpmorteoco as string) ?? null,
+        obitograv: (item.obitograv as string) ?? null,
+        obitopuerp: (item.obitopuerp as string) ?? null,
+        assistmed: (item.assistmed as string) ?? null,
+        exame: (item.exame as string) ?? null,
+        cirurgia: (item.cirurgia as string) ?? null,
+        necropsia: (item.necropsia as string) ?? null,
+        linhaa: (item.linhaa as string) ?? null,
+        linhab: (item.linhab as string) ?? null,
+        linhac: (item.linhac as string) ?? null,
+        linhad: (item.linhad as string) ?? null,
+        linhaii: (item.linhaii as string) ?? null,
+        causabas: (item.causabas as string) ?? null,
+        cb_pre: (item.cb_pre as string) ?? null,
+        comunsvoim: (item.comunsvoim as string) ?? null,
+        dtatestado: (item.dtatestado as string) ?? null,
+        circobito: (item.circobito as string) ?? null,
+        acidtrab: (item.acidtrab as string) ?? null,
+        fonte: (item.fonte as string) ?? null,
+        numerolote: (item.numerolote as string) ?? null,
+        dtinvestig: (item.dtinvestig as string) ?? null,
+        dtcadastro: (item.dtcadastro as string) ?? null,
+        atestante: (item.atestante as string) ?? null,
+        stcodifica: (item.stcodifica as string) ?? null,
+        codificado: (item.codificado as string) ?? null,
+        versaosist: (item.versaosist as string) ?? null,
+        versaoscb: (item.versaoscb as string) ?? null,
+        fonteinv: (item.fonteinv as string) ?? null,
+        dtrecebim: (item.dtrecebim as string) ?? null,
+        atestado: (item.atestado as string) ?? null,
+        dtrecoriga: (item.dtrecoriga as string) ?? null,
+        opor_do: (item.opor_do as string) ?? null,
+        causamat: (item.causamat as string) ?? null,
+        escmaeagr1: (item.escmaeagr1 as string) ?? null,
+        escfalagr1: (item.escfalagr1 as string) ?? null,
+        stdoepidem: (item.stdoepidem as string) ?? null,
+        stdonova: (item.stdonova as string) ?? null,
+        difdata: (item.difdata as string) ?? null,
+        nudiasobco: (item.nudiasobco as string) ?? null,
+        dtcadinv: (item.dtcadinv as string) ?? null,
+        tpobitocor: (item.tpobitocor as string) ?? null,
+        dtconinv: (item.dtconinv as string) ?? null,
+        fontes: (item.fontes as string) ?? null,
+        tpresginfo: (item.tpresginfo as string) ?? null,
+        tpnivelinv: (item.tpnivelinv as string) ?? null,
+        dtcadinf: (item.dtcadinf as string) ?? null,
+        morteparto: (item.morteparto as string) ?? null,
+        dtconcaso: (item.dtconcaso as string) ?? null,
+        altcausa: (item.altcausa as string) ?? null,
+        causabas_o: (item.causabas_o as string) ?? null,
+        tppos: (item.tppos as string) ?? null,
+        tp_altera: (item.tp_altera as string) ?? null,
+        cb_alt: (item.cb_alt as string) ?? null,
+        ano: Number(item.ano),
+        nudiasinf: (item.nudiasinf as string) ?? null,
+        fontesinf: (item.fontesinf as string) ?? null,
+        nudiasobin: (item.nudiasobin as string) ?? null,
+        estabdescr: (item.estabdescr as string) ?? null,
+      }));
+      await this.simRepository.insert(entities as any);
     }
   }
 
@@ -592,7 +585,7 @@ export class SeedService implements OnModuleInit {
       descricao: string;
       tema_id: number;
       fonte: string;
-      direcaoInterpretativa: string;
+      direcaoInterpretativa: DirecaoInterpretativa;
       status: string;
     }[] = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
 
@@ -610,7 +603,7 @@ export class SeedService implements OnModuleInit {
         descricao: item.descricao,
         tema,
         fonte: item.fonte,
-        direcaoInterpretativa: item.direcaoInterpretativa,
+        direcaoInterpretativa: item.direcaoInterpretativa as DirecaoInterpretativa,
         status: item.status,
       });
 

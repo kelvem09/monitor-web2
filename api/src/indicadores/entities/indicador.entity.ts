@@ -4,8 +4,11 @@ import {
   Column,
   ManyToOne,
   JoinColumn,
+  OneToMany,
 } from 'typeorm';
 import { TemaIndicador } from '../../tema-indicador/entities/tema-indicador.entity';
+import { IndicadorCalculado } from '../../indicadores-calculados/entities/indicador-calculado.entity';
+import { DirecaoInterpretativa } from './direcao-interpretativa.enum';
 
 @Entity('indicador')
 export class Indicador {
@@ -37,9 +40,12 @@ export class Indicador {
   @Column({ nullable: true })
   fonte: string;
 
-  @Column({ name: 'direcao_interpretativa', nullable: true })
-  direcaoInterpretativa: string;
+  @Column({ name: 'direcao_interpretativa', type: 'simple-enum', enum: DirecaoInterpretativa, nullable: true })
+  direcaoInterpretativa: DirecaoInterpretativa;
 
   @Column({ default: 'ATIVO' })
   status: string;
+
+  @OneToMany(() => IndicadorCalculado, (calc) => calc.indicador)
+  indicadoresCalculados: IndicadorCalculado[];
 }

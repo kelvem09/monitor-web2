@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { TemaIndicadorResponseDto } from '../../tema-indicador/dto/tema-indicador-response.dto';
+import { DirecaoInterpretativa } from '../entities/direcao-interpretativa.enum';
 
 export class IndicadorResponseDto {
   @ApiProperty()
@@ -26,8 +27,8 @@ export class IndicadorResponseDto {
   @ApiProperty({ nullable: true })
   fonte: string;
 
-  @ApiProperty({ nullable: true })
-  direcaoInterpretativa: string;
+  @ApiProperty({ enum: DirecaoInterpretativa, nullable: true })
+  direcaoInterpretativa: DirecaoInterpretativa;
 
   @ApiProperty()
   status: string;

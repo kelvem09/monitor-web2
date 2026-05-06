@@ -1,14 +1,14 @@
 [
   {
     "id": 1,
-    "previsto_ods": true,
-    "meta_ods": "3.2",
-    "numero_ods": 3,
-    "nome": "Taxa de mortalidade infantil",
-    "descricao": "Indicador utilizado para acompanhar a ocorrência de óbitos infantis em relação aos nascidos vivos em determinado município e ano.",
-    "tema_id": 2,
-    "fonte": "SIM e SINASC",
-    "direcaoInterpretativa": "Quanto menor, melhor",
+    "previsto_ods": false,
+    "meta_ods": null,
+    "numero_ods": null,
+    "nome": "Nascimento Hospitalar",
+    "descricao": "Indicador que representa a quantidade de nascidos vivos cujo local de nascimento foi registrado como hospital.",
+    "tema_id": 1,
+    "fonte": "SINASC",
+    "direcaoInterpretativa": "maior_melhor",
     "status": "ATIVO"
   }
 ]
