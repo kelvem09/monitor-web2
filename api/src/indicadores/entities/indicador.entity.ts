@@ -13,39 +13,39 @@ import { DirecaoInterpretativa } from './direcao-interpretativa.enum';
 @Entity('indicador')
 export class Indicador {
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
   @Column({ name: 'previsto_ods', default: false })
-  previstoOds: boolean;
+  previstoOds!: boolean;
 
   @Column({ name: 'meta_ods', nullable: true })
-  metaOds: string;
+  metaOds!: string;
 
   @Column({ name: 'numero_ods', nullable: true })
-  numeroOds: number;
+  numeroOds!: number;
 
   @Column()
-  nome: string;
+  nome!: string;
 
   @Column({ nullable: true })
-  descricao: string;
+  descricao!: string;
 
   @ManyToOne(() => TemaIndicador, (tema) => tema.indicadores, {
     nullable: false,
     eager: true,
   })
   @JoinColumn({ name: 'tema_id' })
-  tema: TemaIndicador;
+  tema!: TemaIndicador;
 
   @Column({ nullable: true })
-  fonte: string;
+  fonte!: string;
 
   @Column({ name: 'direcao_interpretativa', type: 'simple-enum', enum: DirecaoInterpretativa, nullable: true })
-  direcaoInterpretativa: DirecaoInterpretativa;
+  direcaoInterpretativa!: DirecaoInterpretativa;
 
   @Column({ default: 'ATIVO' })
-  status: string;
+  status!: string;
 
   @OneToMany(() => IndicadorCalculado, (calc) => calc.indicador)
-  indicadoresCalculados: IndicadorCalculado[];
+  indicadoresCalculados!: IndicadorCalculado[];
 }
