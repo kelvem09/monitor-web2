@@ -117,6 +117,20 @@ export class IndicadoresCalculadosService {
     };
   }
 
+  async limpar(indicadorId?: number): Promise<{ deletados: number }> {
+    if (indicadorId !== undefined) {
+      const result = await this.indicadorCalculadoRepository.delete({
+        indicador: { id: indicadorId },
+      });
+      return { deletados: result.affected ?? 0 };
+    }
+    const result = await this.indicadorCalculadoRepository
+      .createQueryBuilder()
+      .delete()
+      .execute();
+    return { deletados: result.affected ?? 0 };
+  }
+
   async findAll(query: IndicadorCalculadoQueryDto): Promise<IndicadorCalculado[]> {
     const qb = this.indicadorCalculadoRepository
       .createQueryBuilder('ic')

@@ -1,18 +1,24 @@
 import {
   BadRequestException,
   Controller,
+  Delete,
   Get,
   Param,
   ParseIntPipe,
   Post,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import {
+  ApiBearerAuth,
   ApiOkResponse,
   ApiOperation,
   ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
+import { AuthGuard } from '../auth/auth.guard';
+import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
 import { IndicadoresCalculadosService } from './indicadores-calculados.service';
 import { IndicadorCalculadoQueryDto } from './dto/indicador-calculado-query.dto';
 import { IndicadorCalculadoResponseDto } from './dto/indicador-calculado-response.dto';
@@ -41,6 +47,23 @@ export class IndicadoresCalculadosController {
       }
     }
     return this.indicadoresCalculadosService.processarIndicador(id, anoNumero);
+  }
+
+  @Delete('limpar')
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Limpar indicadores calculados. Se indicadorId for informado, remove apenas os registros daquele indicador; caso contrário, limpa toda a tabela.' })
+  @ApiQuery({ name: 'indicadorId', required: false, type: Number })
+  limpar(@Query('indicadorId') indicadorId?: string) {
+    let id: number | undefined;
+    if (indicadorId !== undefined) {
+      id = Number(indicadorId);
+      if (isNaN(id)) {
+        throw new BadRequestException('O parâmetro indicadorId deve ser um número válido');
+      }
+    }
+    return this.indicadoresCalculadosService.limpar(id);
   }
 
   @Get()
