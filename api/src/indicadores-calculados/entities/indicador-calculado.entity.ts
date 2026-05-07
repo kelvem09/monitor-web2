@@ -16,27 +16,27 @@ import { Indicador } from '../../indicadores/entities/indicador.entity';
 @Unique(['indicador', 'ano', 'codMunicipio'])
 export class IndicadorCalculado {
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
   @ManyToOne(() => Indicador, (indicador) => indicador.indicadoresCalculados, {
     nullable: false,
     eager: true,
   })
   @JoinColumn({ name: 'id_indicador' })
-  indicador: Indicador;
+  indicador!: Indicador;
 
   @Column()
-  ano: number;
+  ano!: number;
 
   @Column({ name: 'cod_municipio' })
-  codMunicipio: string;
+  codMunicipio!: string;
 
   @Column({ name: 'valor_numerico', type: 'float', nullable: true })
-  valorNumerico: number;
+  valorNumerico!: number;
 
   @Column({ name: 'unidade_medida', nullable: true })
-  unidadeMedida: string;
+  unidadeMedida!: string;
 
   @Column({ name: 'valor_percentual', type: 'float', nullable: true })
-  valorPercentual: number;
+  valorPercentual!: number;
 }

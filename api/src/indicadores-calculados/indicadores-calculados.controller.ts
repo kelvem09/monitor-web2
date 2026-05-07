@@ -22,6 +22,7 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { IndicadoresCalculadosService } from './indicadores-calculados.service';
 import { IndicadorCalculadoQueryDto } from './dto/indicador-calculado-query.dto';
 import { IndicadorCalculadoResponseDto } from './dto/indicador-calculado-response.dto';
+import { UserRole } from '../users/entities/role.enum';
 
 @ApiTags('Indicadores Calculados')
 @Controller('indicadores-calculados')
@@ -30,6 +31,8 @@ export class IndicadoresCalculadosController {
     private readonly indicadoresCalculadosService: IndicadoresCalculadosService,
   ) {}
 
+  //@UseGuards(AuthGuard, RolesGuard)
+  //@Roles(UserRole.ADMIN, UserRole.GESTOR_PUBLICO)
   @Post('processar/:id')
   @ApiOperation({ summary: 'Processar indicador calculado pelo id do indicador' })
   @ApiQuery({ name: 'ano', required: false, type: Number })
@@ -51,7 +54,7 @@ export class IndicadoresCalculadosController {
 
   @Delete('limpar')
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles('ADMIN')
+  @Roles(UserRole.ADMIN)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Limpar indicadores calculados. Se indicadorId for informado, remove apenas os registros daquele indicador; caso contrário, limpa toda a tabela.' })
   @ApiQuery({ name: 'indicadorId', required: false, type: Number })
@@ -76,6 +79,19 @@ export class IndicadoresCalculadosController {
   @ApiQuery({ name: 'codMunicipio', required: false, type: String })
   findAll(@Query() query: IndicadorCalculadoQueryDto) {
     return this.indicadoresCalculadosService.findAll(query);
+  }
+
+  @Get(':id')
+  @ApiOperation({
+    summary: 'Buscar indicador calculado por ID',
+  })
+  @ApiOkResponse({
+    type: IndicadorCalculadoResponseDto,
+  })
+  findOne(
+    @Param('id', ParseIntPipe) id: number,
+  ) {
+    return this.indicadoresCalculadosService.findOne(id);
   }
 }
 

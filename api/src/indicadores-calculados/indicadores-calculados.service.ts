@@ -153,5 +153,12 @@ export class IndicadoresCalculadosService {
 
     return qb.orderBy('ic.id', 'ASC').getMany();
   }
+
+  async findOne(id: number): Promise<IndicadorCalculado | null> {
+    return this.indicadorCalculadoRepository.findOne({
+      where: { id },
+      relations: ['indicador', 'indicador.tema'],
+    });
+  }
 }
 

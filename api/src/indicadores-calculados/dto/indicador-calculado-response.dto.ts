@@ -3,23 +3,23 @@ import { IndicadorResponseDto } from '../../indicadores/dto/indicador-response.d
 
 export class IndicadorCalculadoResponseDto {
   @ApiProperty()
-  id: number;
+  id!: number;
 
   @ApiProperty({ type: () => IndicadorResponseDto })
-  indicador: IndicadorResponseDto;
+  indicador!: IndicadorResponseDto;
 
   @ApiProperty()
-  ano: number;
+  ano!: number;
 
   @ApiProperty()
-  codMunicipio: string;
+  codMunicipio!: string;
 
   @ApiProperty({ nullable: true })
-  valorNumerico: number;
+  valorNumerico?: number;
 
   @ApiProperty({ nullable: true })
-  unidadeMedida: string;
+  unidadeMedida?: string;
 
   @ApiProperty({ nullable: true })
-  valorPercentual: number;
+  valorPercentual?: number;
 }
