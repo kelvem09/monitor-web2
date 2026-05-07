@@ -10,6 +10,11 @@ import {
   listIndicadoresAdmin,
   type Indicador,
 } from '../../services/indicadores.service'
+import {
+  limparIndicadoresCalculados,
+  listIndicadoresCalculados,
+  processarIndicador,
+} from '../../services/indicadores-calculados.service'
 import { listTemas, type Tema } from '../../services/temas.service'
 
 function statusVisual(status: string): { label: string; kind: StatusKind } {
@@ -25,20 +30,30 @@ export function IndicadoresList() {
   const toast = useToast()
   const [indicadores, setIndicadores] = useState<Indicador[]>([])
   const [temas, setTemas] = useState<Tema[]>([])
+  const [calculadosIds, setCalculadosIds] = useState<Set<number>>(new Set())
   const [loading, setLoading] = useState(true)
   const [query, setQuery] = useState('')
   const [temaFilter, setTemaFilter] = useState<'all' | number>('all')
   const [statusFilter, setStatusFilter] = useState<'all' | string>('all')
   const [toDelete, setToDelete] = useState<Indicador | null>(null)
   const [deleting, setDeleting] = useState(false)
+  const [processingId, setProcessingId] = useState<number | null>(null)
+  const [limparTarget, setLimparTarget] = useState<'all' | number>('all')
+  const [confirmLimpar, setConfirmLimpar] = useState(false)
+  const [limpando, setLimpando] = useState(false)
 
   useEffect(() => {
     let cancelled = false
-    Promise.all([listIndicadoresAdmin(), listTemas()])
-      .then(([inds, ts]) => {
+    Promise.all([
+      listIndicadoresAdmin(),
+      listTemas(),
+      listIndicadoresCalculados().catch(() => []),
+    ])
+      .then(([inds, ts, calculados]) => {
         if (cancelled) return
         setIndicadores(inds)
         setTemas(ts)
+        setCalculadosIds(new Set(calculados.map((c) => c.indicador.id)))
       })
       .catch(() => {
         if (!cancelled) {
@@ -89,6 +104,85 @@ export function IndicadoresList() {
       setDeleting(false)
     }
   }
+
+  async function handleProcessar(ind: Indicador) {
+    setProcessingId(ind.id)
+    try {
+      await processarIndicador(ind.id)
+      setCalculadosIds((prev) => {
+        const next = new Set(prev)
+        next.add(ind.id)
+        return next
+      })
+      toast.success(`Indicador "${ind.nome}" processado com sucesso.`)
+    } catch (err) {
+      if (isAxiosError(err)) {
+        const httpStatus = err.response?.status
+        if (httpStatus === 400) {
+          toast.error(
+            `Indicador "${ind.nome}" ainda não possui rotina de processamento.`,
+          )
+        } else if (httpStatus === 401) {
+          toast.error('Sessão expirada. Faça login novamente.')
+        } else if (httpStatus === 403) {
+          toast.error('Apenas administradores podem processar indicadores.')
+        } else if (httpStatus === 404) {
+          toast.error('Indicador não encontrado.')
+        } else {
+          toast.error(`Não foi possível processar "${ind.nome}".`)
+        }
+      } else {
+        toast.error(`Não foi possível processar "${ind.nome}".`)
+      }
+    } finally {
+      setProcessingId(null)
+    }
+  }
+
+  async function handleConfirmLimpar() {
+    setLimpando(true)
+    try {
+      const indicadorId = limparTarget === 'all' ? undefined : limparTarget
+      const result = await limparIndicadoresCalculados(indicadorId)
+      if (indicadorId !== undefined) {
+        setCalculadosIds((prev) => {
+          const next = new Set(prev)
+          next.delete(indicadorId)
+          return next
+        })
+        const alvo = indicadores.find((i) => i.id === indicadorId)
+        toast.success(
+          `Dados calculados de "${alvo?.nome ?? 'indicador'}" limpos (${result.deletados} registro(s)).`,
+        )
+      } else {
+        setCalculadosIds(new Set())
+        toast.success(
+          `Todos os dados calculados foram limpos (${result.deletados} registro(s)).`,
+        )
+      }
+      setConfirmLimpar(false)
+    } catch (err) {
+      if (isAxiosError(err)) {
+        const httpStatus = err.response?.status
+        if (httpStatus === 401) {
+          toast.error('Sessão expirada. Faça login novamente.')
+        } else if (httpStatus === 403) {
+          toast.error('Apenas administradores podem limpar dados calculados.')
+        } else {
+          toast.error('Não foi possível limpar os dados calculados.')
+        }
+      } else {
+        toast.error('Não foi possível limpar os dados calculados.')
+      }
+    } finally {
+      setLimpando(false)
+    }
+  }
+
+  const indicadorLimpar =
+    limparTarget === 'all'
+      ? null
+      : indicadores.find((i) => i.id === limparTarget) ?? null
 
   return (
     <AdminShell>
@@ -167,6 +261,37 @@ export function IndicadoresList() {
           )}
         </div>
 
+        <div className="admin-page__toolbar">
+          <span style={{ fontSize: 11, color: 'var(--ink-3)' }}>
+            Limpar dados calculados:
+          </span>
+          <select
+            className="input"
+            style={{ height: 32, width: 240 }}
+            value={limparTarget === 'all' ? '' : String(limparTarget)}
+            onChange={(e) =>
+              setLimparTarget(
+                e.target.value === '' ? 'all' : Number(e.target.value),
+              )
+            }
+          >
+            <option value="">Todos os indicadores</option>
+            {indicadores.map((ind) => (
+              <option key={ind.id} value={ind.id}>
+                {ind.nome}
+              </option>
+            ))}
+          </select>
+          <button
+            type="button"
+            className="btn btn-sm btn-danger"
+            onClick={() => setConfirmLimpar(true)}
+            disabled={loading || limpando}
+          >
+            Limpar
+          </button>
+        </div>
+
         {!loading && temas.length === 0 && (
           <div className="admin-page__alert admin-page__alert--info">
             Nenhum tema cadastrado.{' '}
@@ -193,12 +318,15 @@ export function IndicadoresList() {
                   <th style={{ width: 130 }}>Fonte</th>
                   <th style={{ width: 90 }}>ODS</th>
                   <th style={{ width: 110 }}>Status</th>
-                  <th style={{ width: 180, textAlign: 'right' }}>Ações</th>
+                  <th style={{ width: 120 }}>Calculado</th>
+                  <th style={{ width: 260, textAlign: 'right' }}>Ações</th>
                 </tr>
               </thead>
               <tbody>
                 {filtered.map((ind) => {
                   const sv = statusVisual(ind.status)
+                  const calculado = calculadosIds.has(ind.id)
+                  const processing = processingId === ind.id
                   return (
                     <tr key={ind.id}>
                       <td>
@@ -238,6 +366,13 @@ export function IndicadoresList() {
                         <StatusBadge label={sv.label} kind={sv.kind} />
                       </td>
                       <td>
+                        {calculado ? (
+                          <StatusBadge label="Calculado" kind="success" />
+                        ) : (
+                          <StatusBadge label="Não calculado" kind="neutral" />
+                        )}
+                      </td>
+                      <td>
                         <div className="actions-cell">
                           <Link
                             to={`/admin/indicadores/${ind.id}/editar`}
@@ -245,6 +380,14 @@ export function IndicadoresList() {
                           >
                             Editar
                           </Link>
+                          <button
+                            type="button"
+                            className="btn btn-sm"
+                            onClick={() => handleProcessar(ind)}
+                            disabled={processing || processingId !== null}
+                          >
+                            {processing ? 'Processando…' : 'Processar'}
+                          </button>
                           <button
                             type="button"
                             className="btn btn-sm btn-danger"
@@ -280,6 +423,30 @@ export function IndicadoresList() {
         busy={deleting}
         onConfirm={confirmDelete}
         onCancel={() => setToDelete(null)}
+      />
+
+      <ConfirmDialog
+        open={confirmLimpar}
+        title="Limpar dados calculados"
+        description={
+          indicadorLimpar ? (
+            <>
+              Tem certeza que deseja limpar os dados calculados de{' '}
+              <strong>{indicadorLimpar.nome}</strong>? Essa ação não pode ser
+              desfeita.
+            </>
+          ) : (
+            <>
+              Tem certeza que deseja limpar <strong>todos</strong> os dados
+              calculados? Essa ação não pode ser desfeita.
+            </>
+          )
+        }
+        confirmLabel="Limpar"
+        destructive
+        busy={limpando}
+        onConfirm={handleConfirmLimpar}
+        onCancel={() => setConfirmLimpar(false)}
       />
     </AdminShell>
   )

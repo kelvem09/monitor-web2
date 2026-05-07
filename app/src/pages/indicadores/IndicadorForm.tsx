@@ -12,6 +12,10 @@ import {
   type DirecaoInterpretativa,
   type IndicadorPayload,
 } from '../../services/indicadores.service'
+import {
+  indicadorJaFoiCalculado,
+  processarIndicador,
+} from '../../services/indicadores-calculados.service'
 import { listTemas, type Tema } from '../../services/temas.service'
 import './IndicadorForm.css'
 
@@ -53,11 +57,16 @@ export function IndicadorForm({ mode }: IndicadorFormProps) {
 
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
+  const [calculado, setCalculado] = useState(false)
+  const [processando, setProcessando] = useState(false)
 
   useEffect(() => {
     let cancelled = false
     const tasks: Promise<unknown>[] = [listTemas()]
-    if (mode === 'edit' && id !== null) tasks.push(getIndicador(id))
+    if (mode === 'edit' && id !== null) {
+      tasks.push(getIndicador(id))
+      tasks.push(indicadorJaFoiCalculado(id).catch(() => false))
+    }
 
     Promise.all(tasks)
       .then((results) => {
@@ -66,6 +75,8 @@ export function IndicadorForm({ mode }: IndicadorFormProps) {
         setTemas(temasData)
         if (mode === 'edit' && id !== null) {
           const ind = results[1] as Awaited<ReturnType<typeof getIndicador>>
+          const jaCalculado = results[2] as boolean
+          setCalculado(jaCalculado)
           setNome(ind.nome)
           setDescricao(ind.descricao ?? '')
           setFonte(ind.fonte ?? '')
@@ -104,6 +115,35 @@ export function IndicadorForm({ mode }: IndicadorFormProps) {
     () => temas.find((t) => t.id === temaId) ?? null,
     [temas, temaId],
   )
+
+  async function handleProcessar() {
+    if (mode !== 'edit' || id === null) return
+    setProcessando(true)
+    try {
+      await processarIndicador(id)
+      setCalculado(true)
+      toast.success('Indicador processado com sucesso.')
+    } catch (err) {
+      if (isAxiosError(err)) {
+        const httpStatus = err.response?.status
+        if (httpStatus === 400) {
+          toast.error('Este indicador ainda não possui rotina de processamento.')
+        } else if (httpStatus === 401) {
+          toast.error('Sessão expirada. Faça login novamente.')
+        } else if (httpStatus === 403) {
+          toast.error('Apenas administradores podem processar indicadores.')
+        } else if (httpStatus === 404) {
+          toast.error('Indicador não encontrado.')
+        } else {
+          toast.error('Não foi possível processar o indicador.')
+        }
+      } else {
+        toast.error('Não foi possível processar o indicador.')
+      }
+    } finally {
+      setProcessando(false)
+    }
+  }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -185,6 +225,22 @@ export function IndicadorForm({ mode }: IndicadorFormProps) {
           </div>
           <h1 className="h-display admin-page__title">{title}</h1>
         </div>
+        {mode === 'edit' && id !== null && !loading && (
+          <div className="admin-page__actions">
+            <StatusBadge
+              label={calculado ? 'Calculado' : 'Não calculado'}
+              kind={calculado ? 'success' : 'neutral'}
+            />
+            <button
+              type="button"
+              className="btn btn-sm"
+              onClick={handleProcessar}
+              disabled={processando}
+            >
+              {processando ? 'Processando…' : 'Processar'}
+            </button>
+          </div>
+        )}
       </header>
 
       <div className="admin-page__body">
