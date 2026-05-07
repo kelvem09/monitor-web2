@@ -4,11 +4,11 @@ import { Indicador } from '../../indicadores/entities/indicador.entity';
 @Entity('tema_indicador')
 export class TemaIndicador {
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
   @Column({ unique: true })
-  nome: string;
+  nome!: string;
 
   @OneToMany(() => Indicador, (indicador) => indicador.tema)
-  indicadores: Indicador[];
+  indicadores!: Indicador[];
 }
