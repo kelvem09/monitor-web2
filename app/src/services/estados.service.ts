@@ -29,7 +29,7 @@ export async function createEstado(payload: EstadoPayload): Promise<Estado> {
 }
 
 export async function updateEstado(id: number, payload: EstadoPayload): Promise<Estado> {
-  const { data } = await api.patch<Estado>(`/estados/${id}`, payload)
+  const { data } = await api.put<Estado>(`/estados/${id}`, payload)
   return data
 }
 

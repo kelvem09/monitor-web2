@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { isAxiosError } from 'axios'
 import { AdminShell } from '../../components/AdminShell'
+import { useToast } from '../../components/toast-context'
 import {
   createMunicipio,
   getMunicipio,
@@ -17,6 +18,7 @@ interface MunicipioFormProps {
 
 export function MunicipioForm({ mode }: MunicipioFormProps) {
   const navigate = useNavigate()
+  const toast = useToast()
   const params = useParams<{ id: string }>()
   const id = mode === 'edit' && params.id ? Number(params.id) : null
 
@@ -27,7 +29,6 @@ export function MunicipioForm({ mode }: MunicipioFormProps) {
 
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
-  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -46,8 +47,14 @@ export function MunicipioForm({ mode }: MunicipioFormProps) {
           setEstadoId(m.estado?.id ?? '')
         }
       })
-      .catch(() => {
-        if (!cancelled) setError('Não foi possível carregar os dados do formulário.')
+      .catch((err) => {
+        if (cancelled) return
+        if (isAxiosError(err) && err.response?.status === 404) {
+          toast.error('Município não encontrado.')
+          navigate('/admin/municipios', { replace: true })
+        } else {
+          toast.error('Não foi possível carregar os dados do formulário.')
+        }
       })
       .finally(() => {
         if (!cancelled) setLoading(false)
@@ -56,26 +63,25 @@ export function MunicipioForm({ mode }: MunicipioFormProps) {
     return () => {
       cancelled = true
     }
-  }, [mode, id])
+  }, [mode, id, toast, navigate])
 
   const selectedEstado = estados.find((e) => e.id === estadoId) ?? null
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    setError(null)
 
     if (estadoId === '' || !selectedEstado) {
-      setError('Selecione o estado ao qual o município pertence.')
+      toast.error('Selecione o estado ao qual o município pertence.')
       return
     }
 
     const codigoNum = Number(codigoIbge)
     if (!Number.isInteger(codigoNum) || codigoNum <= 0) {
-      setError('Código IBGE deve ser um número inteiro positivo.')
+      toast.error('Código IBGE deve ser um número inteiro positivo.')
       return
     }
     if (nome.trim().length < 2) {
-      setError('Informe um nome válido.')
+      toast.error('Informe um nome válido para o município.')
       return
     }
 
@@ -89,15 +95,28 @@ export function MunicipioForm({ mode }: MunicipioFormProps) {
     try {
       if (mode === 'edit' && id !== null) {
         await updateMunicipio(id, payload)
+        toast.success(`Município ${payload.nome} atualizado com sucesso.`)
       } else {
         await createMunicipio(payload)
+        toast.success(`Município ${payload.nome} criado com sucesso.`)
       }
       navigate('/admin/municipios', { replace: true })
     } catch (err) {
-      if (isAxiosError(err) && err.response?.status === 409) {
-        setError('Já existe um município com esse código IBGE.')
+      if (isAxiosError(err)) {
+        const status = err.response?.status
+        if (status === 409) {
+          toast.error('Já existe um município com esse código IBGE.')
+        } else if (status === 400) {
+          toast.error('Dados inválidos. Revise os campos e tente novamente.')
+        } else if (status === 401) {
+          toast.error('Sessão expirada. Faça login novamente.')
+        } else if (status === 404) {
+          toast.error('Município ou estado não encontrado.')
+        } else {
+          toast.error('Não foi possível salvar o município. Tente novamente.')
+        }
       } else {
-        setError('Não foi possível salvar o município. Tente novamente.')
+        toast.error('Não foi possível salvar o município. Tente novamente.')
       }
     } finally {
       setSubmitting(false)
@@ -200,12 +219,6 @@ export function MunicipioForm({ mode }: MunicipioFormProps) {
                   />
                 </div>
               </section>
-
-              {error && (
-                <div className="admin-page__alert admin-page__alert--error">
-                  {error}
-                </div>
-              )}
 
               <footer className="municipio-form__footer">
                 <Link to="/admin/municipios" className="btn">

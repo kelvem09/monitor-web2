@@ -33,7 +33,7 @@ export async function updateMunicipio(
   id: number,
   payload: MunicipioPayload,
 ): Promise<Municipio> {
-  const { data } = await api.patch<Municipio>(`/municipios/${id}`, payload)
+  const { data } = await api.put<Municipio>(`/municipios/${id}`, payload)
   return data
 }
 

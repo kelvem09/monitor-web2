@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { isAxiosError } from 'axios'
 import { AdminShell } from '../../components/AdminShell'
 import { ConfirmDialog } from '../../components/ConfirmDialog'
+import { useToast } from '../../components/toast-context'
 import {
   deleteEstado,
   listEstados,
@@ -11,9 +12,9 @@ import {
 
 export function EstadosList() {
   const navigate = useNavigate()
+  const toast = useToast()
   const [estados, setEstados] = useState<Estado[]>([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
   const [query, setQuery] = useState('')
   const [toDelete, setToDelete] = useState<Estado | null>(null)
   const [deleting, setDeleting] = useState(false)
@@ -25,7 +26,9 @@ export function EstadosList() {
         if (!cancelled) setEstados(data)
       })
       .catch(() => {
-        if (!cancelled) setError('Não foi possível carregar a lista de estados.')
+        if (!cancelled) {
+          toast.error('Não foi possível carregar a lista de estados.')
+        }
       })
       .finally(() => {
         if (!cancelled) setLoading(false)
@@ -33,7 +36,7 @@ export function EstadosList() {
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [toast])
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -49,17 +52,21 @@ export function EstadosList() {
   async function confirmDelete() {
     if (!toDelete) return
     setDeleting(true)
+    const alvo = toDelete
     try {
-      await deleteEstado(toDelete.id)
-      setEstados((prev) => prev.filter((e) => e.id !== toDelete.id))
+      await deleteEstado(alvo.id)
+      setEstados((prev) => prev.filter((e) => e.id !== alvo.id))
       setToDelete(null)
+      toast.success(`Estado ${alvo.nome} excluído com sucesso.`)
     } catch (err) {
       if (isAxiosError(err) && err.response?.status === 409) {
-        setError(
-          `Não foi possível excluir ${toDelete.nome}: existem municípios vinculados.`,
+        toast.error(
+          `Não foi possível excluir ${alvo.nome}: existem municípios vinculados.`,
         )
+      } else if (isAxiosError(err) && err.response?.status === 401) {
+        toast.error('Sessão expirada. Faça login novamente.')
       } else {
-        setError(`Não foi possível excluir ${toDelete.nome}.`)
+        toast.error(`Não foi possível excluir ${alvo.nome}.`)
       }
       setToDelete(null)
     } finally {
@@ -101,10 +108,6 @@ export function EstadosList() {
             <span className="chip">{filtered.length} resultado(s)</span>
           )}
         </div>
-
-        {error && (
-          <div className="admin-page__alert admin-page__alert--error">{error}</div>
-        )}
 
         <div className="card" style={{ overflow: 'hidden' }}>
           {loading ? (

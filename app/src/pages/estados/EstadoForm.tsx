@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { isAxiosError } from 'axios'
 import { AdminShell } from '../../components/AdminShell'
+import { useToast } from '../../components/toast-context'
 import {
   createEstado,
   getEstado,
@@ -16,6 +17,7 @@ interface EstadoFormProps {
 
 export function EstadoForm({ mode }: EstadoFormProps) {
   const navigate = useNavigate()
+  const toast = useToast()
   const params = useParams<{ id: string }>()
   const id = mode === 'edit' && params.id ? Number(params.id) : null
 
@@ -24,7 +26,6 @@ export function EstadoForm({ mode }: EstadoFormProps) {
   const [uf, setUf] = useState('')
   const [loading, setLoading] = useState(mode === 'edit')
   const [submitting, setSubmitting] = useState(false)
-  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     if (mode !== 'edit' || id === null) return
@@ -36,9 +37,14 @@ export function EstadoForm({ mode }: EstadoFormProps) {
         setNome(estado.nome)
         setUf(estado.uf)
       })
-      .catch(() => {
+      .catch((err) => {
         if (cancelled) return
-        setError('Não foi possível carregar o estado.')
+        if (isAxiosError(err) && err.response?.status === 404) {
+          toast.error('Estado não encontrado.')
+          navigate('/admin/estados', { replace: true })
+        } else {
+          toast.error('Não foi possível carregar o estado.')
+        }
       })
       .finally(() => {
         if (!cancelled) setLoading(false)
@@ -46,23 +52,22 @@ export function EstadoForm({ mode }: EstadoFormProps) {
     return () => {
       cancelled = true
     }
-  }, [mode, id])
+  }, [mode, id, toast, navigate])
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    setError(null)
 
     const codigoNum = Number(codigo)
     if (!Number.isInteger(codigoNum) || codigoNum <= 0) {
-      setError('Código IBGE deve ser um número inteiro positivo.')
+      toast.error('Código IBGE deve ser um número inteiro positivo.')
       return
     }
     if (uf.trim().length !== 2) {
-      setError('UF deve conter exatamente 2 letras (ex.: RN).')
+      toast.error('UF deve conter exatamente 2 letras (ex.: RN).')
       return
     }
     if (nome.trim().length < 2) {
-      setError('Informe um nome válido.')
+      toast.error('Informe um nome válido para o estado.')
       return
     }
 
@@ -76,15 +81,28 @@ export function EstadoForm({ mode }: EstadoFormProps) {
     try {
       if (mode === 'edit' && id !== null) {
         await updateEstado(id, payload)
+        toast.success(`Estado ${payload.nome} atualizado com sucesso.`)
       } else {
         await createEstado(payload)
+        toast.success(`Estado ${payload.nome} criado com sucesso.`)
       }
       navigate('/admin/estados', { replace: true })
     } catch (err) {
-      if (isAxiosError(err) && err.response?.status === 409) {
-        setError('Já existe um estado com esse código ou UF.')
+      if (isAxiosError(err)) {
+        const status = err.response?.status
+        if (status === 409) {
+          toast.error('Já existe um estado com esse código ou UF.')
+        } else if (status === 400) {
+          toast.error('Dados inválidos. Revise os campos e tente novamente.')
+        } else if (status === 401) {
+          toast.error('Sessão expirada. Faça login novamente.')
+        } else if (status === 404) {
+          toast.error('Estado não encontrado.')
+        } else {
+          toast.error('Não foi possível salvar o estado. Tente novamente.')
+        }
       } else {
-        setError('Não foi possível salvar o estado. Tente novamente.')
+        toast.error('Não foi possível salvar o estado. Tente novamente.')
       }
     } finally {
       setSubmitting(false)
@@ -161,12 +179,6 @@ export function EstadoForm({ mode }: EstadoFormProps) {
                 />
               </div>
             </section>
-
-            {error && (
-              <div className="admin-page__alert admin-page__alert--error">
-                {error}
-              </div>
-            )}
 
             <footer className="estado-form__footer">
               <Link to="/admin/estados" className="btn">

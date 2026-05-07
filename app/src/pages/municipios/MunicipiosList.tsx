@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { isAxiosError } from 'axios'
 import { AdminShell } from '../../components/AdminShell'
 import { ConfirmDialog } from '../../components/ConfirmDialog'
+import { useToast } from '../../components/toast-context'
 import {
   deleteMunicipio,
   listMunicipios,
@@ -12,10 +13,10 @@ import { listEstados, type Estado } from '../../services/estados.service'
 
 export function MunicipiosList() {
   const navigate = useNavigate()
+  const toast = useToast()
   const [municipios, setMunicipios] = useState<Municipio[]>([])
   const [estados, setEstados] = useState<Estado[]>([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
   const [query, setQuery] = useState('')
   const [estadoFilter, setEstadoFilter] = useState<'all' | number>('all')
   const [toDelete, setToDelete] = useState<Municipio | null>(null)
@@ -30,7 +31,9 @@ export function MunicipiosList() {
         setEstados(ests)
       })
       .catch(() => {
-        if (!cancelled) setError('Não foi possível carregar a lista de municípios.')
+        if (!cancelled) {
+          toast.error('Não foi possível carregar a lista de municípios.')
+        }
       })
       .finally(() => {
         if (!cancelled) setLoading(false)
@@ -38,7 +41,7 @@ export function MunicipiosList() {
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [toast])
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -56,17 +59,21 @@ export function MunicipiosList() {
   async function confirmDelete() {
     if (!toDelete) return
     setDeleting(true)
+    const alvo = toDelete
     try {
-      await deleteMunicipio(toDelete.id)
-      setMunicipios((prev) => prev.filter((m) => m.id !== toDelete.id))
+      await deleteMunicipio(alvo.id)
+      setMunicipios((prev) => prev.filter((m) => m.id !== alvo.id))
       setToDelete(null)
+      toast.success(`Município ${alvo.nome} excluído com sucesso.`)
     } catch (err) {
       if (isAxiosError(err) && err.response?.status === 409) {
-        setError(
-          `Não foi possível excluir ${toDelete.nome}: existem registros vinculados.`,
+        toast.error(
+          `Não foi possível excluir ${alvo.nome}: existem registros vinculados.`,
         )
+      } else if (isAxiosError(err) && err.response?.status === 401) {
+        toast.error('Sessão expirada. Faça login novamente.')
       } else {
-        setError(`Não foi possível excluir ${toDelete.nome}.`)
+        toast.error(`Não foi possível excluir ${alvo.nome}.`)
       }
       setToDelete(null)
     } finally {
@@ -132,10 +139,6 @@ export function MunicipiosList() {
             <span className="chip">{filtered.length} resultado(s)</span>
           )}
         </div>
-
-        {error && (
-          <div className="admin-page__alert admin-page__alert--error">{error}</div>
-        )}
 
         {!loading && estados.length === 0 && (
           <div className="admin-page__alert admin-page__alert--info">
