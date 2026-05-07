@@ -2,8 +2,8 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export class TemaIndicadorResponseDto {
   @ApiProperty()
-  id: number;
+  id!: number;
 
   @ApiProperty()
-  nome: string;
+  nome!: string;
 }
