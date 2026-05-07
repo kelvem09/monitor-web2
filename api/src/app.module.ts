@@ -22,13 +22,15 @@ import { TemaIndicadorModule } from './tema-indicador/tema-indicador.module';
 import { IndicadoresModule } from './indicadores/indicadores.module';
 import { IndicadorCalculado } from './indicadores-calculados/entities/indicador-calculado.entity';
 import { IndicadoresCalculadosModule } from './indicadores-calculados/indicadores-calculados.module';
+import { Ranking } from './rankings/entities/ranking.entity';
+import { RankingsModule } from './rankings/rankings.module';
 
 @Module({
   imports: [
     TypeOrmModule.forRoot({
       type: 'sqlite',
       database: ':memory:',
-      entities: [User, Estado, Municipio, BaseDados, Sinasc, Sim, TemaIndicador, Indicador, IndicadorCalculado],
+      entities: [User, Estado, Municipio, BaseDados, Sinasc, Sim, TemaIndicador, Indicador, IndicadorCalculado, Ranking],
       synchronize: true,
       dropSchema: true,
     }),
@@ -42,6 +44,7 @@ import { IndicadoresCalculadosModule } from './indicadores-calculados/indicadore
     TemaIndicadorModule,
     IndicadoresModule,
     IndicadoresCalculadosModule,
+    RankingsModule,
     SeedModule,
   ],
   controllers: [AppController],

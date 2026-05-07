@@ -9,6 +9,7 @@ import {
 import { TemaIndicador } from '../../tema-indicador/entities/tema-indicador.entity';
 import { IndicadorCalculado } from '../../indicadores-calculados/entities/indicador-calculado.entity';
 import { DirecaoInterpretativa } from './direcao-interpretativa.enum';
+import { Ranking } from '../../rankings/entities/ranking.entity';
 
 @Entity('indicador')
 export class Indicador {
@@ -48,4 +49,7 @@ export class Indicador {
 
   @OneToMany(() => IndicadorCalculado, (calc) => calc.indicador)
   indicadoresCalculados!: IndicadorCalculado[];
+
+  @OneToMany(() => Ranking, (ranking) => ranking.indicador)
+  rankings!: Ranking[];
 }

@@ -4,9 +4,10 @@ import { IndicadorCalculado } from './entities/indicador-calculado.entity';
 import { Indicador } from '../indicadores/entities/indicador.entity';
 import { IndicadoresCalculadosController } from './indicadores-calculados.controller';
 import { IndicadoresCalculadosService } from './indicadores-calculados.service';
+import { RankingsModule } from '../rankings/rankings.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([IndicadorCalculado, Indicador])],
+  imports: [TypeOrmModule.forFeature([IndicadorCalculado, Indicador]), RankingsModule],
   controllers: [IndicadoresCalculadosController],
   providers: [IndicadoresCalculadosService],
   exports: [IndicadoresCalculadosService],

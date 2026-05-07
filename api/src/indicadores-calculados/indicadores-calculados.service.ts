@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { IndicadorCalculado } from './entities/indicador-calculado.entity';
 import { Indicador } from '../indicadores/entities/indicador.entity';
 import { IndicadorCalculadoQueryDto } from './dto/indicador-calculado-query.dto';
+import { RankingsService } from '../rankings/rankings.service';
 
 interface NascimentoHospitalarRow {
   ano: number;
@@ -27,6 +28,7 @@ export class IndicadoresCalculadosService {
     private readonly indicadorCalculadoRepository: Repository<IndicadorCalculado>,
     @InjectRepository(Indicador)
     private readonly indicadorRepository: Repository<Indicador>,
+    private readonly rankingsService: RankingsService,
   ) {}
 
   findRepository(): Repository<IndicadorCalculado> {
@@ -47,7 +49,9 @@ export class IndicadoresCalculadosService {
         `Indicador ${id} ainda não possui rotina de processamento`,
       );
     }
-    return this.processarNascimentoHospitalar(indicador, ano);
+    const result = await this.processarNascimentoHospitalar(indicador, ano);
+    await this.rankingsService.processarRanking(id, ano);
+    return result;
   }
 
   private async processarNascimentoHospitalar(
