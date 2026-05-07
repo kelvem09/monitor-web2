@@ -24,13 +24,14 @@ import { IndicadorCalculado } from './indicadores-calculados/entities/indicador-
 import { IndicadoresCalculadosModule } from './indicadores-calculados/indicadores-calculados.module';
 import { Ranking } from './rankings/entities/ranking.entity';
 import { RankingsModule } from './rankings/rankings.module';
+import { GestorMunicipal } from './users/entities/gestor-municipal.entity';
 
 @Module({
   imports: [
     TypeOrmModule.forRoot({
       type: 'sqlite',
       database: ':memory:',
-      entities: [User, Estado, Municipio, BaseDados, Sinasc, Sim, TemaIndicador, Indicador, IndicadorCalculado, Ranking],
+      entities: [User, Estado, Municipio, BaseDados, Sinasc, Sim, TemaIndicador, Indicador, IndicadorCalculado, Ranking, GestorMunicipal],
       synchronize: true,
       dropSchema: true,
     }),

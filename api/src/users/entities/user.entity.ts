@@ -4,8 +4,10 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
+  OneToOne,
 } from 'typeorm';
 import { UserRole } from './role.enum';
+import { GestorMunicipal } from './gestor-municipal.entity';
 
 @Entity()
 export class User {
@@ -26,6 +28,9 @@ export class User {
 
   @Column({ type: 'simple-enum', enum: UserRole })
   role!: UserRole;
+
+  @OneToOne(() => GestorMunicipal, (gestorMunicipal) => gestorMunicipal.usuario, { nullable: true })
+  gestorMunicipal!: GestorMunicipal | null;
 
   @CreateDateColumn()
   createdAt!: Date;
