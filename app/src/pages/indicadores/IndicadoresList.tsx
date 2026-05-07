@@ -7,7 +7,7 @@ import { StatusBadge, type StatusKind } from '../../components/StatusBadge'
 import { useToast } from '../../components/toast-context'
 import {
   deleteIndicador,
-  listIndicadores,
+  listIndicadoresAdmin,
   type Indicador,
 } from '../../services/indicadores.service'
 import { listTemas, type Tema } from '../../services/temas.service'
@@ -28,12 +28,13 @@ export function IndicadoresList() {
   const [loading, setLoading] = useState(true)
   const [query, setQuery] = useState('')
   const [temaFilter, setTemaFilter] = useState<'all' | number>('all')
+  const [statusFilter, setStatusFilter] = useState<'all' | string>('all')
   const [toDelete, setToDelete] = useState<Indicador | null>(null)
   const [deleting, setDeleting] = useState(false)
 
   useEffect(() => {
     let cancelled = false
-    Promise.all([listIndicadores(), listTemas()])
+    Promise.all([listIndicadoresAdmin(), listTemas()])
       .then(([inds, ts]) => {
         if (cancelled) return
         setIndicadores(inds)
@@ -56,6 +57,7 @@ export function IndicadoresList() {
     const q = query.trim().toLowerCase()
     return indicadores.filter((ind) => {
       if (temaFilter !== 'all' && ind.tema?.id !== temaFilter) return false
+      if (statusFilter !== 'all' && ind.status?.toUpperCase() !== statusFilter) return false
       if (!q) return true
       return (
         ind.nome.toLowerCase().includes(q) ||
@@ -63,7 +65,7 @@ export function IndicadoresList() {
         (ind.fonte ?? '').toLowerCase().includes(q)
       )
     })
-  }, [indicadores, temaFilter, query])
+  }, [indicadores, temaFilter, statusFilter, query])
 
   async function confirmDelete() {
     if (!toDelete) return
@@ -144,7 +146,23 @@ export function IndicadoresList() {
               </option>
             ))}
           </select>
-          {(query || temaFilter !== 'all') && (
+          <span style={{ fontSize: 11, color: 'var(--ink-3)', marginLeft: 8 }}>
+            Status:
+          </span>
+          <select
+            className="input"
+            style={{ height: 32, width: 160 }}
+            value={statusFilter === 'all' ? '' : statusFilter}
+            onChange={(e) =>
+              setStatusFilter(e.target.value === '' ? 'all' : e.target.value)
+            }
+          >
+            <option value="">Todos os status</option>
+            <option value="ATIVO">Ativo</option>
+            <option value="RASCUNHO">Rascunho</option>
+            <option value="INATIVO">Inativo</option>
+          </select>
+          {(query || temaFilter !== 'all' || statusFilter !== 'all') && (
             <span className="chip">{filtered.length} resultado(s)</span>
           )}
         </div>
@@ -163,7 +181,7 @@ export function IndicadoresList() {
           ) : filtered.length === 0 ? (
             <div className="admin-page__empty">
               {indicadores.length === 0
-                ? 'Nenhum indicador ativo cadastrado.'
+                ? 'Nenhum indicador cadastrado.'
                 : 'Nenhum indicador encontrado para os filtros aplicados.'}
             </div>
           ) : (

@@ -34,6 +34,11 @@ export async function listIndicadores(): Promise<Indicador[]> {
   return data
 }
 
+export async function listIndicadoresAdmin(): Promise<Indicador[]> {
+  const { data } = await api.get<Indicador[]>('/indicadores/admin/all')
+  return data
+}
+
 export async function getIndicador(id: number): Promise<Indicador> {
   const { data } = await api.get<Indicador>(`/indicadores/${id}`)
   return data
