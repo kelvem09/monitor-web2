@@ -3,23 +3,23 @@ import { UserRole } from '../entities/role.enum';
 
 export class UserResponseDto {
   @ApiProperty({ example: 1 })
-  id: number;
+  id!: number;
 
   @ApiProperty({ example: 'Administrador' })
-  name: string;
+  name!: string;
 
   @ApiProperty({ example: 'admin@monitor.com' })
-  email: string;
+  email!: string;
 
   @ApiProperty({ example: true })
-  isActive: boolean;
+  isActive!: boolean;
 
   @ApiProperty({ enum: UserRole, example: UserRole.ADMIN })
-  role: UserRole;
+  role!: UserRole;
 
   @ApiProperty()
-  createdAt: Date;
+  createdAt!: Date;
 
   @ApiProperty()
-  updatedAt: Date;
+  updatedAt!: Date;
 }
