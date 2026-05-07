@@ -22,7 +22,7 @@ export function Login() {
     try {
       const { access_token } = await login({ email, password })
       setToken(access_token)
-      navigate('/admin/estados', { replace: true })
+      navigate('/admin/indicadores', { replace: true })
     } catch (err) {
       if (isAxiosError(err) && err.response?.status === 401) {
         setError('Credenciais inválidas.')
