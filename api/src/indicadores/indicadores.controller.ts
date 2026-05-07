@@ -46,6 +46,16 @@ export class IndicadoresController {
     return this.indicadoresService.findByTema(temaId);
   }
 
+  @Get('admin/all')
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Listar todos os indicadores (ADMIN — inclui inativos e rascunhos)' })
+  @ApiOkResponse({ type: IndicadorResponseDto, isArray: true })
+  findAllAdmin(): Promise<IndicadorResponseDto[]> {
+    return this.indicadoresService.findAllAdmin();
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Buscar indicador por ID' })
   @ApiOkResponse({ type: IndicadorResponseDto })

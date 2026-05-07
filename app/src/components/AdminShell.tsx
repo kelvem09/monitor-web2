@@ -9,8 +9,11 @@ interface AdminShellProps {
 }
 
 const NAV_ITEMS: ReadonlyArray<{ to: string; label: string; glyph: string }> = [
+  { to: '/admin/indicadores', label: 'Indicadores', glyph: '◇' },
+  { to: '/admin/temas', label: 'Temas', glyph: '◈' },
   { to: '/admin/estados', label: 'Estados', glyph: '◰' },
   { to: '/admin/municipios', label: 'Municípios', glyph: '◳' },
+  { to: '/admin/usuarios', label: 'Usuários', glyph: '◔' },
 ]
 
 export function AdminShell({ children }: AdminShellProps) {

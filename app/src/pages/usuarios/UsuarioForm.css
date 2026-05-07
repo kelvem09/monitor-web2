@@ -1,0 +1,110 @@
+.usuario-form {
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  max-width: 760px;
+}
+
+.usuario-form__section {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.usuario-form__grid {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  gap: 14px;
+  align-items: center;
+}
+
+.usuario-form__label {
+  font-size: 13px;
+  color: var(--ink-2);
+}
+
+.usuario-form__roles {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.usuario-form__role {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  cursor: pointer;
+  background: var(--bg-elev);
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.usuario-form__role:hover {
+  border-color: var(--ink-4);
+}
+
+.usuario-form__role--active {
+  border-color: var(--ink);
+  background: var(--bg-sunken);
+}
+
+.usuario-form__role input[type='radio'] {
+  margin-top: 3px;
+}
+
+.usuario-form__role-name {
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.usuario-form__role-desc {
+  font-size: 11px;
+  color: var(--ink-3);
+  line-height: 1.45;
+}
+
+.usuario-form__check {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.usuario-form__check input[type='checkbox'] {
+  margin-top: 4px;
+}
+
+.usuario-form__check strong {
+  display: block;
+  font-weight: 600;
+}
+
+.usuario-form__check-hint {
+  display: block;
+  font-size: 11px;
+  color: var(--ink-3);
+  margin-top: 2px;
+}
+
+.usuario-form__footer {
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+@media (max-width: 600px) {
+  .usuario-form__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .usuario-form__roles {
+    grid-template-columns: 1fr;
+  }
+}

@@ -5,6 +5,12 @@ import { EstadosList } from './pages/estados/EstadosList'
 import { EstadoForm } from './pages/estados/EstadoForm'
 import { MunicipiosList } from './pages/municipios/MunicipiosList'
 import { MunicipioForm } from './pages/municipios/MunicipioForm'
+import { UsuariosList } from './pages/usuarios/UsuariosList'
+import { UsuarioForm } from './pages/usuarios/UsuarioForm'
+import { TemasList } from './pages/temas/TemasList'
+import { TemaForm } from './pages/temas/TemaForm'
+import { IndicadoresList } from './pages/indicadores/IndicadoresList'
+import { IndicadorForm } from './pages/indicadores/IndicadorForm'
 import { ProtectedRoute } from './components/ProtectedRoute'
 
 export const router = createBrowserRouter([
@@ -18,7 +24,55 @@ export const router = createBrowserRouter([
   },
   {
     path: '/admin',
-    element: <Navigate to="/admin/estados" replace />,
+    element: <Navigate to="/admin/indicadores" replace />,
+  },
+  {
+    path: '/admin/indicadores',
+    element: (
+      <ProtectedRoute>
+        <IndicadoresList />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/admin/indicadores/novo',
+    element: (
+      <ProtectedRoute>
+        <IndicadorForm mode="create" />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/admin/indicadores/:id/editar',
+    element: (
+      <ProtectedRoute>
+        <IndicadorForm mode="edit" />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/admin/temas',
+    element: (
+      <ProtectedRoute>
+        <TemasList />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/admin/temas/novo',
+    element: (
+      <ProtectedRoute>
+        <TemaForm mode="create" />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/admin/temas/:id/editar',
+    element: (
+      <ProtectedRoute>
+        <TemaForm mode="edit" />
+      </ProtectedRoute>
+    ),
   },
   {
     path: '/admin/estados',
@@ -65,6 +119,30 @@ export const router = createBrowserRouter([
     element: (
       <ProtectedRoute>
         <MunicipioForm mode="edit" />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/admin/usuarios',
+    element: (
+      <ProtectedRoute>
+        <UsuariosList />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/admin/usuarios/novo',
+    element: (
+      <ProtectedRoute>
+        <UsuarioForm mode="create" />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/admin/usuarios/:id/editar',
+    element: (
+      <ProtectedRoute>
+        <UsuarioForm mode="edit" />
       </ProtectedRoute>
     ),
   },
