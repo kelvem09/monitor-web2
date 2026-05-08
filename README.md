@@ -148,7 +148,7 @@ npm install
 npm run start
 ```
 
-A API estará disponível em `http://localhost:3000`.
+A API estará disponível em `http://localhost:3000`. Pode ser necessário cerca de 2 minutos para a API rodar completamente, devido a carga inicial nas entidades das bases de dados, aguarde a mensagem de: "Nest application successfully started".
 
 ### Frontend
 

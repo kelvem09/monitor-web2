@@ -37,5 +37,33 @@
     "direcaoInterpretativa": "menor_melhor",
     "status": "ATIVO",
     "bases_dados_ids": [1, 2]
+  },
+  {
+  "id": 4,
+  "previsto_ods": true,
+  "meta_ods": "3.7.2",
+  "numero_ods": 3,
+  "nome": "Nascidos vivos de mães de 10 a 14 anos",
+  "descricao": "Indicador que representa a quantidade de nascidos vivos de mães com idade entre 10 e 14 anos, considerando o município de residência da mãe e o ano do nascimento.",
+  "tema_id": 1,
+  "odsId": 1,
+  "fonte": "SINASC",
+  "direcaoInterpretativa": "menor_melhor",
+  "status": "ATIVO",
+  "bases_dados_ids": [1]
+},
+  {
+    "id": 5,
+    "previsto_ods": true,
+    "meta_ods": "3.7.2",
+    "numero_ods": 3,
+    "nome": "Nascidos vivos de mães de 15 a 19 anos",
+    "descricao": "Indicador que representa a quantidade de nascidos vivos de mães com idade entre 15 e 19 anos, considerando o município de residência da mãe e o ano do nascimento.",
+    "tema_id": 1,
+    "odsId": 1,
+    "fonte": "SINASC",
+    "direcaoInterpretativa": "menor_melhor",
+    "status": "ATIVO",
+    "bases_dados_ids": [1]
   }
 ]

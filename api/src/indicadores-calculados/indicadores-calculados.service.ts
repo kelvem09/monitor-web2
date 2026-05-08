@@ -30,6 +30,22 @@ interface MortalidadeAte5AnosRow {
   valorPercentual: number;
 }
 
+interface NascidosMaes10a14Row {
+  codMunicipio: string;
+  ano: number;
+  totalMaes10a14: number;
+  totalNascidosVivos: number;
+  valorPercentual: number;
+}
+
+interface NascidosMaes15a19Row {
+  codMunicipio: string;
+  ano: number;
+  totalMaes15a19: number;
+  totalNascidosVivos: number;
+  valorPercentual: number;
+}
+
 export interface ProcessarResult {
   indicadorId: number;
   indicadorNome: string;
@@ -67,6 +83,10 @@ export class IndicadoresCalculadosService {
       result = await this.processarNascidosNaoResidentes(indicador, ano);
     } else if (id === 3) {
       result = await this.processarMortalidadeAte5Anos(indicador, ano);
+    } else if (id === 4) {
+      result = await this.processarNascidosMaes10a14(indicador, ano);
+    } else if (id === 5) {
+      result = await this.processarNascidosMaes15a19(indicador, ano);
     } else {
       throw new BadRequestException(
         `Indicador ${id} ainda não possui rotina de processamento`,
@@ -321,7 +341,142 @@ export class IndicadoresCalculadosService {
           ano: Number(row.ano),
           codMunicipio: String(row.codMunicipio),
           valorNumerico: Number(row.totalObitosAte5 ?? 0),
-          unidadeMedida: 'óbitos de crianças até 5.',
+          valorPercentual: Number(row.valorPercentual ?? 0),
+        }),
+      );
+
+      await this.indicadorCalculadoRepository.insert(entities);
+      totalRegistrosGerados += entities.length;
+    }
+
+    return {
+      indicadorId: indicador.id,
+      indicadorNome: indicador.nome,
+      anosProcessados: anos,
+      totalRegistrosGerados,
+    };
+  }
+
+  private async processarNascidosMaes10a14(
+    indicador: Indicador,
+    ano?: number,
+  ): Promise<ProcessarResult> {
+    const manager = this.indicadorCalculadoRepository.manager;
+
+    let anos: number[];
+    if (ano !== undefined) {
+      anos = [ano];
+    } else {
+      const rows: { ano: number }[] = await manager.query(
+        `SELECT DISTINCT ano FROM sinasc ORDER BY ano`,
+      );
+      anos = rows.map((r) => Number(r.ano));
+    }
+
+    let totalRegistrosGerados = 0;
+
+    for (const anoAtual of anos) {
+      await manager.query(
+        `DELETE FROM indicador_calculado WHERE id_indicador = ? AND ano = ?`,
+        [indicador.id, anoAtual],
+      );
+
+      const rows: NascidosMaes10a14Row[] = await manager.query(
+        `SELECT
+          CAST(m.codigoIbge AS TEXT) AS codMunicipio,
+          s.ano AS ano,
+          SUM(CASE WHEN s.idademae >= 10 AND s.idademae <= 14 THEN 1 ELSE 0 END) AS totalMaes10a14,
+          COUNT(*) AS totalNascidosVivos,
+          CASE
+            WHEN COUNT(*) = 0 THEN 0
+            ELSE (SUM(CASE WHEN s.idademae >= 10 AND s.idademae <= 14 THEN 1 ELSE 0 END) * 100.0 / COUNT(*))
+          END AS valorPercentual
+        FROM sinasc s
+        INNER JOIN municipios m
+          ON s.codmunres = SUBSTR(CAST(m.codigoIbge AS TEXT), 1, 6)
+        WHERE s.ano = ?
+          AND s.idademae IS NOT NULL
+        GROUP BY s.ano, m.codigoIbge`,
+        [anoAtual],
+      );
+
+      if (rows.length === 0) continue;
+
+      const entities = rows.map((row) =>
+        this.indicadorCalculadoRepository.create({
+          indicador,
+          ano: Number(row.ano),
+          codMunicipio: String(row.codMunicipio),
+          valorNumerico: Number(row.totalMaes10a14 ?? 0),
+          unidadeMedida: 'nascidos vivos de mães de 10 a 14 anos',
+          valorPercentual: Number(row.valorPercentual ?? 0),
+        }),
+      );
+
+      await this.indicadorCalculadoRepository.insert(entities);
+      totalRegistrosGerados += entities.length;
+    }
+
+    return {
+      indicadorId: indicador.id,
+      indicadorNome: indicador.nome,
+      anosProcessados: anos,
+      totalRegistrosGerados,
+    };
+  }
+
+  private async processarNascidosMaes15a19(
+    indicador: Indicador,
+    ano?: number,
+  ): Promise<ProcessarResult> {
+    const manager = this.indicadorCalculadoRepository.manager;
+
+    let anos: number[];
+    if (ano !== undefined) {
+      anos = [ano];
+    } else {
+      const rows: { ano: number }[] = await manager.query(
+        `SELECT DISTINCT ano FROM sinasc ORDER BY ano`,
+      );
+      anos = rows.map((r) => Number(r.ano));
+    }
+
+    let totalRegistrosGerados = 0;
+
+    for (const anoAtual of anos) {
+      await manager.query(
+        `DELETE FROM indicador_calculado WHERE id_indicador = ? AND ano = ?`,
+        [indicador.id, anoAtual],
+      );
+
+      const rows: NascidosMaes15a19Row[] = await manager.query(
+        `SELECT
+          CAST(m.codigoIbge AS TEXT) AS codMunicipio,
+          s.ano AS ano,
+          SUM(CASE WHEN s.idademae >= 15 AND s.idademae <= 19 THEN 1 ELSE 0 END) AS totalMaes15a19,
+          COUNT(*) AS totalNascidosVivos,
+          CASE
+            WHEN COUNT(*) = 0 THEN 0
+            ELSE (SUM(CASE WHEN s.idademae >= 15 AND s.idademae <= 19 THEN 1 ELSE 0 END) * 100.0 / COUNT(*))
+          END AS valorPercentual
+        FROM sinasc s
+        INNER JOIN municipios m
+          ON s.codmunres = SUBSTR(CAST(m.codigoIbge AS TEXT), 1, 6)
+        WHERE s.ano = ?
+          AND s.idademae IS NOT NULL
+        GROUP BY s.ano, m.codigoIbge`,
+        [anoAtual],
+      );
+
+      if (rows.length === 0) continue;
+
+      const entities = rows.map((row) =>
+        this.indicadorCalculadoRepository.create({
+          indicador,
+          ano: Number(row.ano),
+          codMunicipio: String(row.codMunicipio),
+          valorNumerico: Number(row.totalMaes15a19 ?? 0),
+          unidadeMedida: 'nascidos vivos de mães de 15 a 19 anos',
           valorPercentual: Number(row.valorPercentual ?? 0),
         }),
       );
