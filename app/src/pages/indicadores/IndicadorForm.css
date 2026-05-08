@@ -63,6 +63,18 @@
   gap: 10px;
 }
 
+.indicador-form__bases {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.indicador-form__bases-empty {
+  font-size: 13px;
+  color: var(--ink-3);
+  margin: 0;
+}
+
 .indicador-form__aside {
   display: flex;
   flex-direction: column;

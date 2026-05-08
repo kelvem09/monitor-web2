@@ -9,6 +9,7 @@
     "tema_id": 1,
     "fonte": "SINASC",
     "direcaoInterpretativa": "maior_melhor",
-    "status": "ATIVO"
+    "status": "ATIVO",
+    "bases_dados_ids": [1]
   }
 ]

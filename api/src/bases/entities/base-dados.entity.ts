@@ -4,7 +4,9 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
+  ManyToMany,
 } from 'typeorm';
+import { Indicador } from '../../indicadores/entities/indicador.entity';
 
 @Entity('bases_dados')
 export class BaseDados {
@@ -28,4 +30,7 @@ export class BaseDados {
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  @ManyToMany(() => Indicador, (indicador) => indicador.basesDados)
+  indicadores!: Indicador[];
 }

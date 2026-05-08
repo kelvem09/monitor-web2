@@ -1,11 +1,14 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsBoolean,
   IsOptional,
   IsString,
   IsNumber,
   IsEnum,
+  IsArray,
+  IsInt,
 } from 'class-validator';
+import { Type } from 'class-transformer';
 import { DirecaoInterpretativa } from '../entities/direcao-interpretativa.enum';
 
 export class CreateIndicadorDto {
@@ -50,4 +53,11 @@ export class CreateIndicadorDto {
   @IsOptional()
   @IsString()
   status?: string;
+
+  @ApiPropertyOptional({ example: [1] })
+  @IsOptional()
+  @IsArray()
+  @IsInt({ each: true })
+  @Type(() => Number)
+  basesDadosIds?: number[];
 }

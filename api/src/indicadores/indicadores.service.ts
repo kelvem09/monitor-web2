@@ -1,7 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { Indicador } from './entities/indicador.entity';
+import { BaseDados } from '../bases/entities/base-dados.entity';
 import { CreateIndicadorDto } from './dto/create-indicador.dto';
 import { UpdateIndicadorDto } from './dto/update-indicador.dto';
 
@@ -10,6 +11,8 @@ export class IndicadoresService {
   constructor(
     @InjectRepository(Indicador)
     private readonly indicadorRepository: Repository<Indicador>,
+    @InjectRepository(BaseDados)
+    private readonly baseDadosRepository: Repository<BaseDados>,
   ) {}
 
   findAll(): Promise<Indicador[]> {
@@ -35,17 +38,30 @@ export class IndicadoresService {
   }
 
   async create(data: CreateIndicadorDto): Promise<Indicador> {
+    let basesDados: BaseDados[] = [];
+
+    if (data.basesDadosIds && data.basesDadosIds.length > 0) {
+      basesDados = await this.baseDadosRepository.findBy({ id: In(data.basesDadosIds) });
+      if (basesDados.length !== data.basesDadosIds.length) {
+        throw new BadRequestException('Uma ou mais bases de dados não foram encontradas');
+      }
+    }
+
     const indicador = this.indicadorRepository.create({
       ...data,
       tema: { id: data.temaId } as any,
       status: data.status ?? 'ATIVO',
+      basesDados,
     });
     
     return this.indicadorRepository.save(indicador);
   }
 
   async update(id: number, data: UpdateIndicadorDto): Promise<Indicador | null> {
-    const indicador = await this.indicadorRepository.findOneBy({ id });
+    const indicador = await this.indicadorRepository.findOne({
+      where: { id },
+      relations: ['basesDados'],
+    });
 
     if (!indicador) return null;
 
@@ -55,6 +71,18 @@ export class IndicadoresService {
         ? ({ id: data.temaId } as any)
         : indicador.tema,
     });
+
+    if (data.basesDadosIds !== undefined) {
+      if (data.basesDadosIds.length > 0) {
+        const bases = await this.baseDadosRepository.findBy({ id: In(data.basesDadosIds) });
+        if (bases.length !== data.basesDadosIds.length) {
+          throw new BadRequestException('Uma ou mais bases de dados não foram encontradas');
+        }
+        indicador.basesDados = bases;
+      } else {
+        indicador.basesDados = [];
+      }
+    }
 
     return this.indicadorRepository.save(indicador);
   }

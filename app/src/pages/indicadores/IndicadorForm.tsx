@@ -17,6 +17,7 @@ import {
   processarIndicador,
 } from '../../services/indicadores-calculados.service'
 import { listTemas, type Tema } from '../../services/temas.service'
+import { listBases, type BaseDados } from '../../services/bases.service'
 import './IndicadorForm.css'
 
 interface IndicadorFormProps {
@@ -45,6 +46,7 @@ export function IndicadorForm({ mode }: IndicadorFormProps) {
   const id = mode === 'edit' && params.id ? Number(params.id) : null
 
   const [temas, setTemas] = useState<Tema[]>([])
+  const [bases, setBases] = useState<BaseDados[]>([])
   const [temaId, setTemaId] = useState<number | ''>('')
   const [nome, setNome] = useState('')
   const [descricao, setDescricao] = useState('')
@@ -54,6 +56,7 @@ export function IndicadorForm({ mode }: IndicadorFormProps) {
   const [metaOds, setMetaOds] = useState('')
   const [direcao, setDirecao] = useState<DirecaoInterpretativa | ''>('')
   const [status, setStatus] = useState<StatusOption>('ATIVO')
+  const [selectedBaseIds, setSelectedBaseIds] = useState<number[]>([])
 
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
@@ -62,7 +65,7 @@ export function IndicadorForm({ mode }: IndicadorFormProps) {
 
   useEffect(() => {
     let cancelled = false
-    const tasks: Promise<unknown>[] = [listTemas()]
+    const tasks: Promise<unknown>[] = [listTemas(), listBases().catch(() => [])]
     if (mode === 'edit' && id !== null) {
       tasks.push(getIndicador(id))
       tasks.push(indicadorJaFoiCalculado(id).catch(() => false))
@@ -72,10 +75,12 @@ export function IndicadorForm({ mode }: IndicadorFormProps) {
       .then((results) => {
         if (cancelled) return
         const temasData = results[0] as Tema[]
+        const basesData = results[1] as BaseDados[]
         setTemas(temasData)
+        setBases(basesData)
         if (mode === 'edit' && id !== null) {
-          const ind = results[1] as Awaited<ReturnType<typeof getIndicador>>
-          const jaCalculado = results[2] as boolean
+          const ind = results[2] as Awaited<ReturnType<typeof getIndicador>>
+          const jaCalculado = results[3] as boolean
           setCalculado(jaCalculado)
           setNome(ind.nome)
           setDescricao(ind.descricao ?? '')
@@ -91,6 +96,7 @@ export function IndicadorForm({ mode }: IndicadorFormProps) {
               ? (upper as StatusOption)
               : 'ATIVO',
           )
+          setSelectedBaseIds((ind.basesDados ?? []).map((b) => b.id))
         }
       })
       .catch((err) => {
@@ -177,6 +183,7 @@ export function IndicadorForm({ mode }: IndicadorFormProps) {
       metaOds: previstoOds ? metaOds.trim() || null : null,
       numeroOds: previstoOds ? numeroOdsNum ?? null : null,
       status,
+      basesDadosIds: selectedBaseIds,
     }
 
     setSubmitting(true)
@@ -417,6 +424,35 @@ export function IndicadorForm({ mode }: IndicadorFormProps) {
                       onChange={(e) => setMetaOds(e.target.value)}
                       placeholder="3.2 — Reduzir mortalidade neonatal"
                     />
+                  </div>
+                )}
+              </section>
+
+              <section className="indicador-form__section">
+                <span className="h-eyebrow">4 · Bases de dados</span>
+                {bases.length === 0 ? (
+                  <p className="indicador-form__bases-empty">Nenhuma base cadastrada.</p>
+                ) : (
+                  <div className="indicador-form__bases">
+                    {bases.map((base) => (
+                      <label key={base.id} className="indicador-form__check">
+                        <input
+                          type="checkbox"
+                          checked={selectedBaseIds.includes(base.id)}
+                          onChange={(e) => {
+                            setSelectedBaseIds((prev) =>
+                              e.target.checked
+                                ? [...prev, base.id]
+                                : prev.filter((x) => x !== base.id),
+                            )
+                          }}
+                        />
+                        <span>
+                          <strong>{base.sigla}</strong>
+                          <span className="indicador-form__check-hint">{base.nome}</span>
+                        </span>
+                      </label>
+                    ))}
                   </div>
                 )}
               </section>

@@ -1,5 +1,6 @@
 import { api } from '../lib/api'
 import type { Tema } from './temas.service'
+import type { BaseDados } from './bases.service'
 
 export type DirecaoInterpretativa = 'maior_melhor' | 'menor_melhor'
 export type IndicadorStatus = 'ATIVO' | 'INATIVO' | 'RASCUNHO'
@@ -15,6 +16,7 @@ export interface Indicador {
   fonte?: string | null
   direcaoInterpretativa?: DirecaoInterpretativa | null
   status: IndicadorStatus | string
+  basesDados?: BaseDados[]
 }
 
 export interface IndicadorPayload {
@@ -27,6 +29,7 @@ export interface IndicadorPayload {
   fonte?: string | null
   direcaoInterpretativa?: DirecaoInterpretativa | null
   status?: string
+  basesDadosIds?: number[]
 }
 
 export async function listIndicadores(): Promise<Indicador[]> {

@@ -5,11 +5,14 @@ import {
   ManyToOne,
   JoinColumn,
   OneToMany,
+  ManyToMany,
+  JoinTable,
 } from 'typeorm';
 import { TemaIndicador } from '../../tema-indicador/entities/tema-indicador.entity';
 import { IndicadorCalculado } from '../../indicadores-calculados/entities/indicador-calculado.entity';
 import { DirecaoInterpretativa } from './direcao-interpretativa.enum';
 import { Ranking } from '../../rankings/entities/ranking.entity';
+import { BaseDados } from '../../bases/entities/base-dados.entity';
 
 @Entity('indicador')
 export class Indicador {
@@ -52,4 +55,12 @@ export class Indicador {
 
   @OneToMany(() => Ranking, (ranking) => ranking.indicador)
   rankings!: Ranking[];
+
+  @ManyToMany(() => BaseDados, (base) => base.indicadores, { eager: true })
+  @JoinTable({
+    name: 'indicador_base_dados',
+    joinColumn: { name: 'id_indicador', referencedColumnName: 'id' },
+    inverseJoinColumn: { name: 'id_base_dados', referencedColumnName: 'id' },
+  })
+  basesDados!: BaseDados[];
 }

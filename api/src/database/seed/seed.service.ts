@@ -1,6 +1,6 @@
 ﻿import { Injectable, OnModuleInit } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as bcrypt from 'bcryptjs';
@@ -424,6 +424,7 @@ export class SeedService implements OnModuleInit {
       fonte: string;
       direcaoInterpretativa: DirecaoInterpretativa;
       status: string;
+      bases_dados_ids?: number[];
     }[] = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
 
     for (const item of items) {
@@ -431,6 +432,11 @@ export class SeedService implements OnModuleInit {
         where: { id: item.tema_id },
       });
       if (!tema) continue;
+
+      let basesDados: BaseDados[] = [];
+      if (item.bases_dados_ids && item.bases_dados_ids.length > 0) {
+        basesDados = await this.baseDadosRepository.findBy({ id: In(item.bases_dados_ids) });
+      }
 
       const indicador = this.indicadorRepository.create({
         previstoOds: item.previsto_ods,
@@ -442,6 +448,7 @@ export class SeedService implements OnModuleInit {
         fonte: item.fonte,
         direcaoInterpretativa: item.direcaoInterpretativa as DirecaoInterpretativa,
         status: item.status,
+        basesDados,
       });
 
       await this.indicadorRepository.save(indicador);

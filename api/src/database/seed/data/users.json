@@ -10,7 +10,8 @@
     "name": "Gestor",
     "email": "gestor@monitor.com",
     "password": "123456",
-    "role": "GESTOR_PUBLICO"
+    "role": "GESTOR_PUBLICO",
+     "municipioId": 50
   }
 
   

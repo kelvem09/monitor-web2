@@ -2,6 +2,17 @@ import { ApiProperty } from '@nestjs/swagger';
 import { TemaIndicadorResponseDto } from '../../tema-indicador/dto/tema-indicador-response.dto';
 import { DirecaoInterpretativa } from '../entities/direcao-interpretativa.enum';
 
+class BaseDadosResponseDto {
+  @ApiProperty()
+  id!: number;
+
+  @ApiProperty()
+  nome!: string;
+
+  @ApiProperty()
+  sigla!: string;
+}
+
 export class IndicadorResponseDto {
   @ApiProperty()
   id!: number;
@@ -32,4 +43,7 @@ export class IndicadorResponseDto {
 
   @ApiProperty()
   status!: string;
+
+  @ApiProperty({ type: () => [BaseDadosResponseDto] })
+  basesDados!: BaseDadosResponseDto[];
 }
