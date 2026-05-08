@@ -18,6 +18,7 @@ import {
 } from '../../services/indicadores-calculados.service'
 import { listTemas, type Tema } from '../../services/temas.service'
 import { listBases, type BaseDados } from '../../services/bases.service'
+import { listOds, type Ods } from '../../services/ods.service'
 import './IndicadorForm.css'
 
 interface IndicadorFormProps {
@@ -47,12 +48,13 @@ export function IndicadorForm({ mode }: IndicadorFormProps) {
 
   const [temas, setTemas] = useState<Tema[]>([])
   const [bases, setBases] = useState<BaseDados[]>([])
+  const [odsList, setOdsList] = useState<Ods[]>([])
   const [temaId, setTemaId] = useState<number | ''>('')
   const [nome, setNome] = useState('')
   const [descricao, setDescricao] = useState('')
   const [fonte, setFonte] = useState('')
   const [previstoOds, setPrevistoOds] = useState(false)
-  const [numeroOds, setNumeroOds] = useState('')
+  const [selectedOdsId, setSelectedOdsId] = useState<number | null>(null)
   const [metaOds, setMetaOds] = useState('')
   const [direcao, setDirecao] = useState<DirecaoInterpretativa | ''>('')
   const [status, setStatus] = useState<StatusOption>('ATIVO')
@@ -65,7 +67,7 @@ export function IndicadorForm({ mode }: IndicadorFormProps) {
 
   useEffect(() => {
     let cancelled = false
-    const tasks: Promise<unknown>[] = [listTemas(), listBases().catch(() => [])]
+    const tasks: Promise<unknown>[] = [listTemas(), listBases().catch(() => []), listOds().catch(() => [])]
     if (mode === 'edit' && id !== null) {
       tasks.push(getIndicador(id))
       tasks.push(indicadorJaFoiCalculado(id).catch(() => false))
@@ -76,17 +78,19 @@ export function IndicadorForm({ mode }: IndicadorFormProps) {
         if (cancelled) return
         const temasData = results[0] as Tema[]
         const basesData = results[1] as BaseDados[]
+        const odsData = results[2] as Ods[]
         setTemas(temasData)
         setBases(basesData)
+        setOdsList(odsData)
         if (mode === 'edit' && id !== null) {
-          const ind = results[2] as Awaited<ReturnType<typeof getIndicador>>
-          const jaCalculado = results[3] as boolean
+          const ind = results[3] as Awaited<ReturnType<typeof getIndicador>>
+          const jaCalculado = results[4] as boolean
           setCalculado(jaCalculado)
           setNome(ind.nome)
           setDescricao(ind.descricao ?? '')
           setFonte(ind.fonte ?? '')
           setPrevistoOds(ind.previstoOds)
-          setNumeroOds(ind.numeroOds != null ? String(ind.numeroOds) : '')
+          setSelectedOdsId(ind.ods?.id ?? null)
           setMetaOds(ind.metaOds ?? '')
           setDirecao((ind.direcaoInterpretativa as DirecaoInterpretativa) ?? '')
           setTemaId(ind.tema?.id ?? '')
@@ -163,16 +167,6 @@ export function IndicadorForm({ mode }: IndicadorFormProps) {
       return
     }
 
-    let numeroOdsNum: number | undefined
-    if (previstoOds && numeroOds.trim() !== '') {
-      const n = Number(numeroOds)
-      if (!Number.isInteger(n) || n < 1 || n > 17) {
-        toast.error('Número do ODS deve ser um inteiro entre 1 e 17.')
-        return
-      }
-      numeroOdsNum = n
-    }
-
     const payload: IndicadorPayload = {
       previstoOds,
       nome: nome.trim(),
@@ -181,7 +175,7 @@ export function IndicadorForm({ mode }: IndicadorFormProps) {
       fonte: fonte.trim() || null,
       direcaoInterpretativa: direcao === '' ? null : direcao,
       metaOds: previstoOds ? metaOds.trim() || null : null,
-      numeroOds: previstoOds ? numeroOdsNum ?? null : null,
+      odsId: previstoOds ? selectedOdsId : null,
       status,
       basesDadosIds: selectedBaseIds,
     }
@@ -392,39 +386,50 @@ export function IndicadorForm({ mode }: IndicadorFormProps) {
                 </label>
 
                 {previstoOds && (
-                  <div className="indicador-form__grid">
-                    <label
-                      className="indicador-form__label"
-                      htmlFor="numero-ods"
-                    >
-                      Nº ODS
+                  <>
+                    <label className="indicador-form__label" style={{ marginBottom: 6 }}>
+                      Selecionar ODS
                     </label>
-                    <input
-                      id="numero-ods"
-                      className="input"
-                      inputMode="numeric"
-                      style={{ maxWidth: 120, fontFamily: 'var(--font-mono)' }}
-                      value={numeroOds}
-                      onChange={(e) =>
-                        setNumeroOds(e.target.value.replace(/\D/g, ''))
-                      }
-                      placeholder="3"
-                    />
-
-                    <label
-                      className="indicador-form__label"
-                      htmlFor="meta-ods"
-                    >
-                      Meta ODS
-                    </label>
-                    <input
-                      id="meta-ods"
-                      className="input"
-                      value={metaOds}
-                      onChange={(e) => setMetaOds(e.target.value)}
-                      placeholder="3.2 — Reduzir mortalidade neonatal"
-                    />
-                  </div>
+                    {odsList.length === 0 ? (
+                      <p className="indicador-form__bases-empty">Nenhum ODS cadastrado.</p>
+                    ) : (
+                      <div className="indicador-form__bases">
+                        {odsList.map((ods) => (
+                          <label key={ods.id} className="indicador-form__check">
+                            <input
+                              type="checkbox"
+                              checked={selectedOdsId === ods.id}
+                              onChange={() =>
+                                setSelectedOdsId((prev) =>
+                                  prev === ods.id ? null : ods.id,
+                                )
+                              }
+                            />
+                            <span>
+                              <strong>
+                                {ods.numeroOds} - {ods.temaOds}
+                              </strong>
+                            </span>
+                          </label>
+                        ))}
+                      </div>
+                    )}
+                    <div className="indicador-form__grid" style={{ marginTop: 12 }}>
+                      <label
+                        className="indicador-form__label"
+                        htmlFor="meta-ods"
+                      >
+                        Meta ODS
+                      </label>
+                      <input
+                        id="meta-ods"
+                        className="input"
+                        value={metaOds}
+                        onChange={(e) => setMetaOds(e.target.value)}
+                        placeholder="3.2 — Reduzir mortalidade neonatal"
+                      />
+                    </div>
+                  </>
                 )}
               </section>
 
@@ -508,7 +513,9 @@ export function IndicadorForm({ mode }: IndicadorFormProps) {
                     <>
                       <span>•</span>
                       <span className="num">
-                        ODS {numeroOds || '—'}
+                        {selectedOdsId
+                          ? `ODS ${odsList.find((o) => o.id === selectedOdsId)?.numeroOds ?? selectedOdsId}`
+                          : 'ODS —'}
                       </span>
                     </>
                   )}

@@ -5,11 +5,16 @@ import type { BaseDados } from './bases.service'
 export type DirecaoInterpretativa = 'maior_melhor' | 'menor_melhor'
 export type IndicadorStatus = 'ATIVO' | 'INATIVO' | 'RASCUNHO'
 
+export interface OdsSimple {
+  id: number
+  numeroOds: number
+  temaOds: string
+}
+
 export interface Indicador {
   id: number
   previstoOds: boolean
   metaOds?: string | null
-  numeroOds?: number | null
   nome: string
   descricao?: string | null
   tema: Tema
@@ -17,12 +22,13 @@ export interface Indicador {
   direcaoInterpretativa?: DirecaoInterpretativa | null
   status: IndicadorStatus | string
   basesDados?: BaseDados[]
+  ods?: OdsSimple | null
 }
 
 export interface IndicadorPayload {
   previstoOds: boolean
   metaOds?: string | null
-  numeroOds?: number | null
+  odsId?: number | null
   nome: string
   descricao?: string | null
   temaId: number
