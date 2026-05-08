@@ -2,7 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { isAxiosError } from 'axios'
 import { login } from '../services/auth.service'
-import { setToken } from '../lib/auth'
+import { setToken, setUser } from '../lib/auth'
 import { Logo } from '../components/Logo'
 import './Login.css'
 
@@ -20,8 +20,9 @@ export function Login() {
     setIsSubmitting(true)
 
     try {
-      const { access_token } = await login({ email, password })
+      const { access_token, user } = await login({ email, password })
       setToken(access_token)
+      setUser({ id: user.id, name: user.name, email: user.email, role: user.role })
       navigate('/admin/indicadores', { replace: true })
     } catch (err) {
       if (isAxiosError(err) && err.response?.status === 401) {

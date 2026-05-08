@@ -1,0 +1,139 @@
+.ranking {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100svh;
+  background: var(--bg);
+}
+
+.ranking__body {
+  padding: 32px 64px;
+  flex: 1;
+  overflow: auto;
+}
+
+.ranking__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 18px;
+  margin-bottom: 24px;
+}
+
+.ranking__title-block {
+  min-width: 0;
+}
+
+.ranking__eyebrow {
+  margin-bottom: 0;
+}
+
+.ranking__title {
+  font-size: 40px;
+  margin: 6px 0 8px;
+}
+
+.ranking__subtitle {
+  color: var(--ink-3);
+  font-size: 13px;
+  margin: 0;
+}
+
+.ranking__controls {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.ranking__select {
+  height: 36px;
+  padding: 0 12px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--line-2);
+  background: var(--bg-elev);
+  font-size: 13px;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.ranking__select:focus {
+  outline: none;
+  border-color: var(--ink);
+}
+
+.ranking__stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-bottom: 32px;
+}
+
+.ranking__stat-card {
+  padding: 18px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.ranking__stat-bar {
+  width: 6px;
+  height: 48px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.ranking__stat-label {
+  margin-bottom: 4px;
+}
+
+.ranking__stat-value {
+  font-size: 30px;
+  line-height: 1;
+  margin: 0;
+}
+
+.ranking__stat-unit {
+  font-size: 14px;
+  color: var(--ink-3);
+  margin-left: 4px;
+}
+
+.ranking__stat-where {
+  font-size: 12px;
+  color: var(--ink-3);
+  margin-top: 4px;
+}
+
+.ranking__table-card {
+  overflow: hidden;
+}
+
+.ranking__pct-cell {
+  min-width: 160px;
+}
+
+.ranking__pct-track {
+  height: 8px;
+  background: var(--bg-sunken);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.ranking__pct-fill {
+  height: 100%;
+  border-radius: 4px;
+  background: var(--c4);
+  transition: width 0.3s ease;
+}
+
+.ranking__overlay {
+  text-align: center;
+  padding: 48px 24px;
+  color: var(--ink-3);
+  font-size: 13px;
+}
+
+.ranking__overlay--erro {
+  color: var(--danger);
+}

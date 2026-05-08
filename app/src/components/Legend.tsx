@@ -6,7 +6,7 @@ interface LegendProps {
 }
 
 export function Legend({ scale, min, max, unit = '' }: LegendProps) {
-  const fmt = (n: number) => `${n.toFixed(1)}${unit}`
+  const fmt = (n: number) => `${n.toFixed(1)} ${unit}`
 
   return (
     <div

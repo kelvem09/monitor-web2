@@ -21,10 +21,13 @@ const NO_DATA_COLOR = '#d4d4d4'
 type MunValor = {
   ibge: string
   nome: string
-  valor: number | null
+  valorNumerico: number | null
+  valorPercentual: number | null
   unidadeMedida: string | null
   hasData: boolean
 }
+
+type TipoDado = 'unidade' | 'percentual'
 
 function buildValoresFromCalculados(
   geo: RNGeoJSON,
@@ -43,12 +46,17 @@ function buildValoresFromCalculados(
     map.set(ibge, {
       ibge,
       nome: String(f.properties.name ?? ibge),
-      valor: calc?.valorNumerico ?? null,
+      valorNumerico: calc?.valorNumerico ?? null,
+      valorPercentual: calc?.valorPercentual ?? null,
       unidadeMedida: calc?.unidadeMedida ?? null,
       hasData: calc !== undefined,
     })
   }
   return map
+}
+
+function getValorAtivo(v: MunValor, tipoDado: TipoDado): number | null {
+  return tipoDado === 'unidade' ? v.valorNumerico : v.valorPercentual
 }
 
 function colorFor(normalized: number): string {
@@ -61,7 +69,10 @@ function normalizeValor(valor: number, min: number, max: number): number {
   return Math.min(1, Math.max(0, (valor - min) / (max - min)))
 }
 
-function computeDataStats(valores: Map<string, MunValor>): {
+function computeDataStats(
+  valores: Map<string, MunValor>,
+  tipoDado: TipoDado,
+): {
   min: number
   max: number
   unidadeMedida: string
@@ -70,15 +81,16 @@ function computeDataStats(valores: Map<string, MunValor>): {
   let max = -Infinity
   let unit = ''
   for (const v of valores.values()) {
-    if (!v.hasData || v.valor == null) continue
-    if (v.valor < min) min = v.valor
-    if (v.valor > max) max = v.valor
+    const val = getValorAtivo(v, tipoDado)
+    if (!v.hasData || val == null) continue
+    if (val < min) min = val
+    if (val > max) max = val
     if (!unit && v.unidadeMedida) unit = v.unidadeMedida
   }
   return {
     min: isFinite(min) ? min : 0,
     max: isFinite(max) ? max : 0,
-    unidadeMedida: unit,
+    unidadeMedida: tipoDado === 'percentual' ? '%' : unit,
   }
 }
 
@@ -87,22 +99,25 @@ function enrichGeoJSON(
   valores: Map<string, MunValor>,
   dataMin: number,
   dataMax: number,
+  tipoDado: TipoDado,
 ): RNGeoJSON {
   return {
     type: 'FeatureCollection',
     features: geo.features.map((f) => {
       const ibge = String(f.properties.id ?? f.id ?? '')
       const v = valores.get(ibge)
-      const hasData = v?.hasData && v.valor != null
+      const valAtivo = v ? getValorAtivo(v, tipoDado) : null
+      const hasData = v?.hasData && valAtivo != null
       const fillColor = hasData
-        ? colorFor(normalizeValor(v!.valor!, dataMin, dataMax))
+        ? colorFor(normalizeValor(valAtivo!, dataMin, dataMax))
         : NO_DATA_COLOR
       return {
         ...f,
         properties: {
           ...f.properties,
           ibge,
-          valor: v?.valor ?? null,
+          valorNumerico: v?.valorNumerico ?? null,
+          valorPercentual: v?.valorPercentual ?? null,
           unidadeMedida: v?.unidadeMedida ?? null,
           hasData: v?.hasData ?? false,
           fillColor,
@@ -116,12 +131,14 @@ function buildHistogram(
   valores: Map<string, MunValor>,
   dataMin: number,
   dataMax: number,
+  tipoDado: TipoDado,
   bins = 20,
 ): number[] {
   const out = Array<number>(bins).fill(0)
   for (const v of valores.values()) {
-    if (!v.hasData || v.valor == null) continue
-    const normalized = normalizeValor(v.valor, dataMin, dataMax)
+    const val = getValorAtivo(v, tipoDado)
+    if (!v.hasData || val == null) continue
+    const normalized = normalizeValor(val, dataMin, dataMax)
     const i = Math.min(bins - 1, Math.max(0, Math.floor(normalized * bins)))
     out[i] += 1
   }
@@ -154,11 +171,13 @@ export function Mapa() {
   const [indicadores, setIndicadores] = useState<Indicador[]>([])
   const [indId, setIndId] = useState<number | null>(null)
   const [ano, setAno] = useState<number>(2024)
+  const [tipoDado, setTipoDado] = useState<TipoDado>('unidade')
   const [geo, setGeo] = useState<RNGeoJSON | null>(null)
   const [calculados, setCalculados] = useState<IndicadorCalculado[]>([])
   const [carregandoGeo, setCarregandoGeo] = useState<boolean>(true)
   const [carregandoCalculados, setCarregandoCalculados] = useState<boolean>(false)
   const [erro, setErro] = useState<string | null>(null)
+  const [mapLoaded, setMapLoaded] = useState(false)
 
   const indicadorAtivo = useMemo(
     () => indicadores.find((i) => i.id === indId) ?? null,
@@ -219,7 +238,7 @@ export function Mapa() {
     [geo, calculados],
   )
 
-  const dataStats = useMemo(() => computeDataStats(valores), [valores])
+  const dataStats = useMemo(() => computeDataStats(valores, tipoDado), [valores, tipoDado])
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return
@@ -229,7 +248,7 @@ export function Mapa() {
       style: BLANK_STYLE,
       center: [-36.7, -5.7] as [number, number],
       zoom: 6,
-      maxBounds: RN_BOUNDS,
+      // maxBounds: RN_BOUNDS,
       attributionControl: false,
     })
 
@@ -238,7 +257,8 @@ export function Mapa() {
 
     map.once('load', () => {
       map.resize()
-      map.fitBounds(RN_BOUNDS, { padding: 50 })
+      map.fitBounds(RN_BOUNDS)
+      setMapLoaded(true)
     })
 
     return () => {
@@ -246,14 +266,15 @@ export function Mapa() {
       popupRef.current = null
       map.remove()
       mapRef.current = null
+      setMapLoaded(false)
     }
   }, [])
 
   useEffect(() => {
     const map = mapRef.current
-    if (!map || !geo || valores.size === 0) return
+    if (!map || !mapLoaded || !geo || valores.size === 0) return
 
-    const enriched = enrichGeoJSON(geo, valores, dataStats.min, dataStats.max)
+    const enriched = enrichGeoJSON(geo, valores, dataStats.min, dataStats.max, tipoDado)
 
     const apply = () => {
       const src = map.getSource(SOURCE_ID) as maplibregl.GeoJSONSource | undefined
@@ -318,28 +339,43 @@ export function Mapa() {
           map.setFeatureState({ source: SOURCE_ID, id: hoveredId }, { hover: true })
         }
 
-        const props = f.properties as {
-          name?: string
-          valor?: number | null
-          ibge?: string
-          unidadeMedida?: string | null
-          hasData?: boolean
-        }
-        const nome = props.name ?? props.ibge ?? '—'
+        const props = f.properties as Record<string, unknown>
+        const nome = String(props['name'] ?? props['ibge'] ?? '—')
 
-        let valueHtml: string
-        if (!props.hasData || props.valor == null) {
-          valueHtml = '<span class="mapa__tooltip-value">Sem dados</span>'
-        } else if (props.unidadeMedida) {
-          valueHtml = `<span class="mapa__tooltip-value num">${props.valor.toLocaleString('pt-BR')} ${props.unidadeMedida}</span>`
+        const rawNum = props['valorNumerico']
+        const rawPct = props['valorPercentual']
+        const valorNum = typeof rawNum === 'number' ? rawNum
+          : typeof rawNum === 'string' && rawNum !== 'null' && rawNum !== '' ? Number(rawNum)
+          : null
+        const valorPct = typeof rawPct === 'number' ? rawPct
+          : typeof rawPct === 'string' && rawPct !== 'null' && rawPct !== '' ? Number(rawPct)
+          : null
+        const unidade = typeof props['unidadeMedida'] === 'string' && props['unidadeMedida'] !== 'null'
+          ? props['unidadeMedida']
+          : ''
+
+        let valoresHtml: string
+        if (valorNum === null && valorPct === null) {
+          valoresHtml = '<span class="mapa__tooltip-value">Sem dados</span>'
         } else {
-          valueHtml = `<span class="mapa__tooltip-value num">${props.valor.toLocaleString('pt-BR')}</span>`
+          const numStr = valorNum !== null
+            ? `${valorNum.toLocaleString('pt-BR')}${unidade ? ' ' + unidade : ''}`
+            : '—'
+          const pctStr = valorPct !== null && !isNaN(valorPct)
+            ? `${valorPct.toFixed(2)}%`
+            : '—'
+          valoresHtml = `
+            <span class="mapa__tooltip-label">Unidade:</span>
+            <span class="mapa__tooltip-value num">${numStr}</span>
+            <span class="mapa__tooltip-label">Percentual:</span>
+            <span class="mapa__tooltip-value num">${pctStr}</span>
+          `
         }
 
         const html = `
           <div class="mapa__tooltip">
             <span class="mapa__tooltip-title">${nome}</span>
-            ${valueHtml}
+            ${valoresHtml}
           </div>
         `
         if (!popupRef.current) {
@@ -363,24 +399,20 @@ export function Mapa() {
       })
     }
 
-    if (map.isStyleLoaded()) {
-      apply()
-    } else {
-      map.once('load', apply)
-    }
-  }, [geo, valores, dataStats])
+    apply()
+  }, [mapLoaded, geo, valores, dataStats, tipoDado])
 
   const carregando = carregandoGeo || carregandoCalculados
   const histogram = useMemo(
-    () => buildHistogram(valores, dataStats.min, dataStats.max),
-    [valores, dataStats],
+    () => buildHistogram(valores, dataStats.min, dataStats.max, tipoDado),
+    [valores, dataStats, tipoDado],
   )
   const histMax = Math.max(1, ...histogram)
 
   const handleZoomIn = () => mapRef.current?.zoomIn()
   const handleZoomOut = () => mapRef.current?.zoomOut()
   const handleRecenter = () => {
-    mapRef.current?.fitBounds(RN_BOUNDS, { padding: 50, essential: true })
+    mapRef.current?.fitBounds(RN_BOUNDS)
   }
 
   return (
@@ -424,6 +456,20 @@ export function Mapa() {
                 </button>
               )
             })}
+          </div>
+
+          <span className="h-eyebrow">Tipo de dado</span>
+          <div className="mapa__anos">
+            {([['unidade', 'Unidade'], ['percentual', 'Percentual']] as const).map(([val, label]) => (
+              <button
+                key={val}
+                type="button"
+                onClick={() => setTipoDado(val)}
+                className={`chip mapa__ano${tipoDado === val ? ' chip-active' : ''}`}
+              >
+                {label}
+              </button>
+            ))}
           </div>
 
           <span className="h-eyebrow">Distribuição</span>

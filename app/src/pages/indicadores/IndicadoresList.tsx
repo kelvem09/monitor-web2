@@ -337,7 +337,7 @@ export function IndicadoresList() {
                               fontSize: 11,
                               color: 'var(--ink-3)',
                               marginTop: 2,
-                              maxWidth: 520,
+                              maxWidth: 320,
                               overflow: 'hidden',
                               textOverflow: 'ellipsis',
                               whiteSpace: 'nowrap',

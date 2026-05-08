@@ -1,5 +1,6 @@
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { Logo } from './Logo'
+import { getUser, clearToken, clearUser } from '../lib/auth'
 import './PublicTopBar.css'
 
 interface NavItem {
@@ -21,6 +22,15 @@ interface PublicTopBarProps {
 
 export function PublicTopBar({ active }: PublicTopBarProps) {
   const location = useLocation()
+  const navigate = useNavigate()
+  const user = getUser()
+  const isAdmin = user?.role === 'ADMIN'
+
+  function handleLogout() {
+    clearToken()
+    clearUser()
+    navigate('/login', { replace: true })
+  }
 
   return (
     <header className="public-topbar">
@@ -43,13 +53,31 @@ export function PublicTopBar({ active }: PublicTopBarProps) {
             </Link>
           )
         })}
-        <Link
-          to="/login"
-          state={{ from: location }}
-          className="public-topbar__link public-topbar__link--cta"
-        >
-          Acessar
-        </Link>
+        {isAdmin ? (
+          <>
+            <span className="public-topbar__sep" aria-hidden="true" />
+            <Link to="/admin/indicadores" className="public-topbar__link public-topbar__link--admin">
+              Cadastros
+            </Link>
+            <button
+              type="button"
+              className="public-topbar__logout"
+              onClick={handleLogout}
+              aria-label="Sair"
+              title="Sair"
+            >
+              ⏻
+            </button>
+          </>
+        ) : (
+          <Link
+            to="/login"
+            state={{ from: location }}
+            className="public-topbar__link public-topbar__link--cta"
+          >
+            Acessar
+          </Link>
+        )}
       </nav>
     </header>
   )

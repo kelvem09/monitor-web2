@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
-import { NavLink, useNavigate } from 'react-router-dom'
+import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { Logo } from './Logo'
-import { clearToken } from '../lib/auth'
+import { clearToken, clearUser } from '../lib/auth'
 import './AdminShell.css'
 
 interface AdminShellProps {
@@ -21,6 +21,7 @@ export function AdminShell({ children }: AdminShellProps) {
 
   function handleLogout() {
     clearToken()
+    clearUser()
     navigate('/login', { replace: true })
   }
 
@@ -48,6 +49,11 @@ export function AdminShell({ children }: AdminShellProps) {
             </NavLink>
           ))}
         </nav>
+
+        <Link to="/" className="admin-shell__public-link">
+          <span className="admin-shell__nav-glyph" aria-hidden="true">↗</span>
+          Área Pública
+        </Link>
 
         <div className="admin-shell__user">
           <div className="admin-shell__avatar">LV</div>

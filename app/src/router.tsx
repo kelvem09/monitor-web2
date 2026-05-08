@@ -1,6 +1,7 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom'
 import { Login } from './pages/Login'
 import { Mapa } from './pages/mapa/Mapa'
+import { RankingPage } from './pages/ranking/Ranking'
 import { EstadosList } from './pages/estados/EstadosList'
 import { EstadoForm } from './pages/estados/EstadoForm'
 import { MunicipiosList } from './pages/municipios/MunicipiosList'
@@ -17,6 +18,10 @@ export const router = createBrowserRouter([
   {
     path: '/',
     element: <Mapa />,
+  },
+  {
+    path: '/ranking',
+    element: <RankingPage />,
   },
   {
     path: '/login',

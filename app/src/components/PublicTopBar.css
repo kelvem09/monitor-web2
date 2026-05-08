@@ -64,3 +64,30 @@
   margin-left: 12px;
   color: var(--ink-2);
 }
+
+.public-topbar__link--admin {
+  margin-left: 4px;
+  color: var(--ink-2);
+  font-weight: 600;
+}
+
+.public-topbar__logout {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--ink-3);
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.public-topbar__logout:hover {
+  background: var(--bg-sunken);
+  color: var(--ink);
+}
