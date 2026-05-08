@@ -6,11 +6,16 @@ import {
   ParseIntPipe,
   Post,
   Query,
+  UseGuards,
 } from '@nestjs/common';
-import { ApiOkResponse, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { RankingsService } from './rankings.service';
 import { RankingQueryDto } from './dto/ranking-query.dto';
 import { RankingResponseDto } from './dto/ranking-response.dto';
+import { AuthGuard } from '../auth/auth.guard';
+import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { UserRole } from '../users/entities/role.enum';
 
 @ApiTags('Rankings')
 @Controller('rankings')
@@ -35,6 +40,9 @@ export class RankingsController {
   }
 
   @Get()
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.GESTOR_PUBLICO)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Listar rankings com filtros' })
   @ApiOkResponse({ type: RankingResponseDto, isArray: true })
   @ApiQuery({ name: 'indicadorId', required: false, type: Number })
