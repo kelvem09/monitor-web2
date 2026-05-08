@@ -24,5 +24,18 @@
     "direcaoInterpretativa": "maior_melhor",
     "status": "ATIVO",
     "bases_dados_ids": [1]
+  },
+  {
+    "id": 3,
+    "previsto_ods": true,
+    "meta_ods": "3.2.1",
+    "id_ods": 1,
+    "nome": "Taxa de mortalidade em crianças de até 5 anos",
+    "descricao": "Indicador que representa a razão entre o número de óbitos de crianças de até 5 anos residentes no município e o total de nascidos vivos residentes no mesmo município e ano, multiplicado por 1.000.",
+    "tema_id": 2,
+    "fonte": "SIM e SINASC",
+    "direcaoInterpretativa": "menor_melhor",
+    "status": "ATIVO",
+    "bases_dados_ids": [1, 2]
   }
 ]

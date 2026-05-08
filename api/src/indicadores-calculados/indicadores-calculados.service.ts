@@ -22,6 +22,14 @@ interface NascidosNaoResidentesRow {
   valorPercentual: number;
 }
 
+interface MortalidadeAte5AnosRow {
+  codMunicipio: string;
+  ano: number;
+  totalObitosAte5: number;
+  totalNascidosVivos: number;
+  valorPercentual: number;
+}
+
 export interface ProcessarResult {
   indicadorId: number;
   indicadorNome: string;
@@ -57,6 +65,8 @@ export class IndicadoresCalculadosService {
       result = await this.processarNascimentoHospitalar(indicador, ano);
     } else if (id === 2) {
       result = await this.processarNascidosNaoResidentes(indicador, ano);
+    } else if (id === 3) {
+      result = await this.processarMortalidadeAte5Anos(indicador, ano);
     } else {
       throw new BadRequestException(
         `Indicador ${id} ainda não possui rotina de processamento`,
@@ -212,6 +222,106 @@ export class IndicadoresCalculadosService {
           codMunicipio: String(row.codMunicipio),
           valorNumerico: Number(row.totalNaoResidentes ?? 0),
           unidadeMedida: 'nascidos e não residentes',
+          valorPercentual: Number(row.valorPercentual ?? 0),
+        }),
+      );
+
+      await this.indicadorCalculadoRepository.insert(entities);
+      totalRegistrosGerados += entities.length;
+    }
+
+    return {
+      indicadorId: indicador.id,
+      indicadorNome: indicador.nome,
+      anosProcessados: anos,
+      totalRegistrosGerados,
+    };
+  }
+
+  private async processarMortalidadeAte5Anos(
+    indicador: Indicador,
+    ano?: number,
+  ): Promise<ProcessarResult> {
+    const manager = this.indicadorCalculadoRepository.manager;
+
+    let anos: number[];
+    if (ano !== undefined) {
+      anos = [ano];
+    } else {
+      const rows: { ano: number }[] = await manager.query(
+        `SELECT DISTINCT ano FROM sim ORDER BY ano`,
+      );
+      anos = rows.map((r) => Number(r.ano));
+    }
+
+    let totalRegistrosGerados = 0;
+
+    for (const anoAtual of anos) {
+      await manager.query(
+        `DELETE FROM indicador_calculado WHERE id_indicador = ? AND ano = ?`,
+        [indicador.id, anoAtual],
+      );
+
+      const rows: MortalidadeAte5AnosRow[] = await manager.query(
+        `SELECT
+          CAST(m.codigoIbge AS TEXT) AS codMunicipio,
+          obitos.ano AS ano,
+          obitos.totalObitosAte5 AS totalObitosAte5,
+          COALESCE(nascidos.totalNascidosVivos, 0) AS totalNascidosVivos,
+          CASE
+            WHEN COALESCE(nascidos.totalNascidosVivos, 0) = 0 THEN 0
+            ELSE (obitos.totalObitosAte5 * 1000.0 / nascidos.totalNascidosVivos)
+          END AS valorPercentual
+        FROM municipios m
+        INNER JOIN (
+          SELECT
+            s.ano AS ano,
+            s.codmunres AS codmunres,
+            COUNT(*) AS totalObitosAte5
+          FROM sim s
+          WHERE s.ano = ?
+            AND s.codmunres IS NOT NULL
+            AND s.dtobito IS NOT NULL
+            AND s.dtnasc IS NOT NULL
+            AND LENGTH(s.dtobito) = 8
+            AND LENGTH(s.dtnasc) = 8
+            AND (
+              CAST(SUBSTR(s.dtobito, 5, 4) AS INTEGER)
+              - CAST(SUBSTR(s.dtnasc, 5, 4) AS INTEGER)
+              - CASE
+                  WHEN SUBSTR(s.dtobito, 3, 2) || SUBSTR(s.dtobito, 1, 2)
+                    < SUBSTR(s.dtnasc, 3, 2) || SUBSTR(s.dtnasc, 1, 2)
+                  THEN 1
+                  ELSE 0
+                END
+            ) <= 5
+          GROUP BY s.ano, s.codmunres
+        ) obitos
+          ON obitos.codmunres = SUBSTR(CAST(m.codigoIbge AS TEXT), 1, 6)
+        LEFT JOIN (
+          SELECT
+            sn.ano AS ano,
+            sn.codmunres AS codmunres,
+            COUNT(*) AS totalNascidosVivos
+          FROM sinasc sn
+          WHERE sn.ano = ?
+            AND sn.codmunres IS NOT NULL
+          GROUP BY sn.ano, sn.codmunres
+        ) nascidos
+          ON nascidos.ano = obitos.ano
+          AND nascidos.codmunres = obitos.codmunres`,
+        [anoAtual, anoAtual],
+      );
+
+      if (rows.length === 0) continue;
+
+      const entities = rows.map((row) =>
+        this.indicadorCalculadoRepository.create({
+          indicador,
+          ano: Number(row.ano),
+          codMunicipio: String(row.codMunicipio),
+          valorNumerico: Number(row.totalObitosAte5 ?? 0),
+          unidadeMedida: 'óbitos de crianças até 5.',
           valorPercentual: Number(row.valorPercentual ?? 0),
         }),
       );
