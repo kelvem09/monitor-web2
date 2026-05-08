@@ -11,5 +11,18 @@
     "direcaoInterpretativa": "maior_melhor",
     "status": "ATIVO",
     "bases_dados_ids": [1]
+  },
+  {
+    "id": 2,
+    "previsto_ods": false,
+    "meta_ods": null,
+    "numero_ods": null,
+    "nome": "Nascidos e Não Residentes",
+    "descricao": "Indicador que representa a quantidade de nascidos vivos ocorridos em determinado município, mas cuja residência da mãe está registrada em município diferente.",
+    "tema_id": 1,
+    "fonte": "SINASC",
+    "direcaoInterpretativa": "maior_melhor",
+    "status": "ATIVO",
+    "bases_dados_ids": [1]
   }
 ]

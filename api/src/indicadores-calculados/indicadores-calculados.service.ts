@@ -14,6 +14,14 @@ interface NascimentoHospitalarRow {
   valorPercentual: number;
 }
 
+interface NascidosNaoResidentesRow {
+  ano: number;
+  codMunicipio: string;
+  totalNaoResidentes: number;
+  totalNascidosEstado: number;
+  valorPercentual: number;
+}
+
 export interface ProcessarResult {
   indicadorId: number;
   indicadorNome: string;
@@ -44,12 +52,16 @@ export class IndicadoresCalculadosService {
     if (!indicador) {
       throw new NotFoundException(`Indicador com id ${id} não encontrado`);
     }
-    if (id !== 1) {
+    let result: ProcessarResult;
+    if (id === 1) {
+      result = await this.processarNascimentoHospitalar(indicador, ano);
+    } else if (id === 2) {
+      result = await this.processarNascidosNaoResidentes(indicador, ano);
+    } else {
       throw new BadRequestException(
         `Indicador ${id} ainda não possui rotina de processamento`,
       );
     }
-    const result = await this.processarNascimentoHospitalar(indicador, ano);
     await this.rankingsService.processarRanking(id, ano);
     return result;
   }
@@ -104,7 +116,102 @@ export class IndicadoresCalculadosService {
           ano: Number(row.ano),
           codMunicipio: String(row.codMunicipio),
           valorNumerico: Number(row.totalHospitalar ?? 0),
-          unidadeMedida: 'nascidos vivos',
+          unidadeMedida: 'nascidos vivos em hospitais',
+          valorPercentual: Number(row.valorPercentual ?? 0),
+        }),
+      );
+
+      await this.indicadorCalculadoRepository.insert(entities);
+      totalRegistrosGerados += entities.length;
+    }
+
+    return {
+      indicadorId: indicador.id,
+      indicadorNome: indicador.nome,
+      anosProcessados: anos,
+      totalRegistrosGerados,
+    };
+  }
+
+  private async processarNascidosNaoResidentes(
+    indicador: Indicador,
+    ano?: number,
+  ): Promise<ProcessarResult> {
+    const manager = this.indicadorCalculadoRepository.manager;
+
+    let anos: number[];
+    if (ano !== undefined) {
+      anos = [ano];
+    } else {
+      const rows: { ano: number }[] = await manager.query(
+        `SELECT DISTINCT ano FROM sinasc ORDER BY ano`,
+      );
+      anos = rows.map((r) => Number(r.ano));
+    }
+
+    let totalRegistrosGerados = 0;
+
+    for (const anoAtual of anos) {
+      await manager.query(
+        `DELETE FROM indicador_calculado WHERE id_indicador = ? AND ano = ?`,
+        [indicador.id, anoAtual],
+      );
+
+      const rows: NascidosNaoResidentesRow[] = await manager.query(
+        `SELECT
+          s.ano AS ano,
+          CAST(m.codigoIbge AS TEXT) AS codMunicipio,
+          SUM(
+            CASE
+              WHEN s.codmunres IS NOT NULL
+               AND s.codmunnasc IS NOT NULL
+               AND s.codmunres <> s.codmunnasc
+              THEN 1
+              ELSE 0
+            END
+          ) AS totalNaoResidentes,
+          total_estado.totalNascidosEstado AS totalNascidosEstado,
+          CASE
+            WHEN total_estado.totalNascidosEstado = 0 THEN 0
+            ELSE (
+              SUM(
+                CASE
+                  WHEN s.codmunres IS NOT NULL
+                   AND s.codmunnasc IS NOT NULL
+                   AND s.codmunres <> s.codmunnasc
+                  THEN 1
+                  ELSE 0
+                END
+              ) * 100.0 / total_estado.totalNascidosEstado
+            )
+          END AS valorPercentual
+        FROM sinasc s
+        INNER JOIN municipios m
+          ON s.codmunnasc = SUBSTR(CAST(m.codigoIbge AS TEXT), 1, 6)
+        INNER JOIN (
+          SELECT
+            ano,
+            COUNT(*) AS totalNascidosEstado
+          FROM sinasc
+          WHERE ano = ?
+          GROUP BY ano
+        ) total_estado
+          ON total_estado.ano = s.ano
+        WHERE s.ano = ?
+          AND s.codmunnasc IS NOT NULL
+        GROUP BY s.ano, m.codigoIbge, total_estado.totalNascidosEstado`,
+        [anoAtual, anoAtual],
+      );
+
+      if (rows.length === 0) continue;
+
+      const entities = rows.map((row) =>
+        this.indicadorCalculadoRepository.create({
+          indicador,
+          ano: Number(row.ano),
+          codMunicipio: String(row.codMunicipio),
+          valorNumerico: Number(row.totalNaoResidentes ?? 0),
+          unidadeMedida: 'nascidos e não residentes',
           valorPercentual: Number(row.valorPercentual ?? 0),
         }),
       );
