@@ -5,16 +5,13 @@ import { Ranking } from './entities/ranking.entity';
 import { Indicador } from '../indicadores/entities/indicador.entity';
 import { IndicadorCalculado } from '../indicadores-calculados/entities/indicador-calculado.entity';
 import { RankingQueryDto } from './dto/ranking-query.dto';
+import { RankingResponseDto } from './dto/ranking-response.dto';
 
 export interface ProcessarResult {
   indicadorId: number;
   indicadorNome: string;
   anosProcessados: number[];
   totalRegistrosGerados: number;
-}
-
-export interface FindAllResult {
-  data: Ranking[];
 }
 
 interface RankingRow {
@@ -111,10 +108,23 @@ export class RankingsService {
     };
   }
 
-  async findAll(query: RankingQueryDto): Promise<FindAllResult> {
+  async findAll(query: RankingQueryDto): Promise<RankingResponseDto[]> {
     const qb = this.rankingRepository
       .createQueryBuilder('r')
-      .innerJoinAndSelect('r.indicador', 'indicador');
+      .innerJoin('r.indicador', 'indicador')
+      .leftJoin(
+        'indicador_calculado',
+        'ic',
+        'ic.id_indicador = indicador.id AND ic.ano = r.ano AND ic.cod_municipio = r.cod_municipio',
+      )
+      .select('r.id', 'id')
+      .addSelect('indicador.id', 'indicadorId')
+      .addSelect('r.codMunicipio', 'codMunicipio')
+      .addSelect('r.ano', 'ano')
+      .addSelect('r.posicaoRankingValor', 'posicaoRankingValor')
+      .addSelect('r.posicaoRankingPercentual', 'posicaoRankingPercentual')
+      .addSelect('ic.valor_numerico', 'valorNumerico')
+      .addSelect('ic.valor_percentual', 'valorPercentual');
 
     if (query.indicadorId) {
       qb.andWhere('indicador.id = :indicadorId', { indicadorId: query.indicadorId });
@@ -130,8 +140,36 @@ export class RankingsService {
       .addOrderBy('indicador.id', 'ASC')
       .addOrderBy('r.posicaoRankingValor', 'ASC');
 
-    const data = await qb.getMany();
-    return { data };
+    const rows = await qb.getRawMany<{
+      id: number;
+      indicadorId: number;
+      codMunicipio: string;
+      ano: number;
+      posicaoRankingValor: number;
+      posicaoRankingPercentual: number | null;
+      valorNumerico: number | null;
+      valorPercentual: number | null;
+    }>();
+
+    return rows.map((row) => ({
+      id: Number(row.id),
+      indicadorId: Number(row.indicadorId),
+      codMunicipio: String(row.codMunicipio),
+      ano: Number(row.ano),
+      posicaoRankingValor: Number(row.posicaoRankingValor),
+      posicaoRankingPercentual:
+        row.posicaoRankingPercentual !== null && row.posicaoRankingPercentual !== undefined
+          ? Number(row.posicaoRankingPercentual)
+          : null,
+      valorNumerico:
+        row.valorNumerico !== null && row.valorNumerico !== undefined
+          ? Number(row.valorNumerico)
+          : null,
+      valorPercentual:
+        row.valorPercentual !== null && row.valorPercentual !== undefined
+          ? Number(row.valorPercentual)
+          : null,
+    }));
   }
 
   private resolverDirecao(direcao: string | null | undefined): 'MAIOR_MELHOR' | 'MENOR_MELHOR' {

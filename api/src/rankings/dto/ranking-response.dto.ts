@@ -1,25 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-class IndicadorBriefDto {
-  @ApiProperty()
-  id!: number;
-
-  @ApiProperty()
-  nome!: string;
-
-  @ApiProperty()
-  direcaoInterpretativa!: string;
-
-  @ApiProperty()
-  status!: string;
-}
-
 export class RankingResponseDto {
   @ApiProperty()
   id!: number;
 
-  @ApiProperty({ type: () => IndicadorBriefDto })
-  indicador!: IndicadorBriefDto;
+  @ApiProperty()
+  indicadorId!: number;
 
   @ApiProperty()
   codMunicipio!: string;
@@ -32,4 +18,10 @@ export class RankingResponseDto {
 
   @ApiProperty({ nullable: true })
   posicaoRankingPercentual!: number | null;
+
+  @ApiProperty({ nullable: true })
+  valorNumerico!: number | null;
+
+  @ApiProperty({ nullable: true })
+  valorPercentual!: number | null;
 }
