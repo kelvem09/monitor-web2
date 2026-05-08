@@ -10,6 +10,8 @@ import { UsuariosList } from './pages/usuarios/UsuariosList'
 import { UsuarioForm } from './pages/usuarios/UsuarioForm'
 import { TemasList } from './pages/temas/TemasList'
 import { TemaForm } from './pages/temas/TemaForm'
+import { OdsList } from './pages/ods/OdsList'
+import { OdsForm } from './pages/ods/OdsForm'
 import { IndicadoresList } from './pages/indicadores/IndicadoresList'
 import { IndicadorForm } from './pages/indicadores/IndicadorForm'
 import { ProtectedRoute } from './components/ProtectedRoute'
@@ -76,6 +78,30 @@ export const router = createBrowserRouter([
     element: (
       <ProtectedRoute>
         <TemaForm mode="edit" />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/admin/ods',
+    element: (
+      <ProtectedRoute>
+        <OdsList />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/admin/ods/novo',
+    element: (
+      <ProtectedRoute>
+        <OdsForm mode="create" />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/admin/ods/:id/editar',
+    element: (
+      <ProtectedRoute>
+        <OdsForm mode="edit" />
       </ProtectedRoute>
     ),
   },

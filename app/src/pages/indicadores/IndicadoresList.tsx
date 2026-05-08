@@ -354,7 +354,7 @@ export function IndicadoresList() {
                       <td>
                         {ind.previstoOds ? (
                           <span className="chip chip-accent">
-                            {ind.numeroOds ? `ODS ${ind.numeroOds}` : 'ODS'}
+                            {ind.ods?.numeroOds ? `ODS ${ind.ods.numeroOds}` : 'ODS'}
                           </span>
                         ) : (
                           <span style={{ fontSize: 12, color: 'var(--ink-4)' }}>

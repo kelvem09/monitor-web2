@@ -24,7 +24,8 @@ export function PublicTopBar({ active }: PublicTopBarProps) {
   const location = useLocation()
   const navigate = useNavigate()
   const user = getUser()
-  const isAdmin = user?.role === 'ADMIN'
+  const isLogged = user?.role === 'ADMIN' || user?.role === 'GESTOR_PUBLICO'
+  const canSeeRanking = user?.role === 'ADMIN' || user?.role === 'GESTOR_PUBLICO'
 
   function handleLogout() {
     clearToken()
@@ -40,7 +41,9 @@ export function PublicTopBar({ active }: PublicTopBarProps) {
       <span className="public-topbar__sep" aria-hidden="true" />
       <span className="h-eyebrow public-topbar__tag">Portal Público</span>
       <nav className="public-topbar__nav">
-        {NAV_ITEMS.map((item) => {
+        {NAV_ITEMS.filter(
+          (item) => item.key !== 'ranking' || canSeeRanking,
+        ).map((item) => {
           const isActive = item.key === active
           return (
             <Link
@@ -53,12 +56,14 @@ export function PublicTopBar({ active }: PublicTopBarProps) {
             </Link>
           )
         })}
-        {isAdmin ? (
+        {isLogged ? (
           <>
             <span className="public-topbar__sep" aria-hidden="true" />
-            <Link to="/admin/indicadores" className="public-topbar__link public-topbar__link--admin">
-              Cadastros
-            </Link>
+            { user?.role === 'ADMIN' &&
+              <Link to="/admin/indicadores" className="public-topbar__link public-topbar__link--admin">
+                Cadastros
+              </Link>
+            }
             <button
               type="button"
               className="public-topbar__logout"

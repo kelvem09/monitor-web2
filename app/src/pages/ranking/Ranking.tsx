@@ -222,7 +222,7 @@ export function RankingPage() {
                 </tr>
               </thead>
               <tbody>
-                {sorted.map((r, idx) => {
+                {sorted.map((r) => {
                   const mun = municipioMap.get(r.codMunicipio)
                   const nomeMun = mun?.nome ?? r.codMunicipio
                   const position = tipoDado === 'unidade' ? r.posicaoRankingValor : r.posicaoRankingPercentual

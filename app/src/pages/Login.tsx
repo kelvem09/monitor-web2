@@ -23,7 +23,12 @@ export function Login() {
       const { access_token, user } = await login({ email, password })
       setToken(access_token)
       setUser({ id: user.id, name: user.name, email: user.email, role: user.role })
-      navigate('/admin/indicadores', { replace: true })
+
+      if (user.role === 'ADMIN') {
+        navigate('/admin/indicadores', { replace: true })
+      } else {
+        navigate('/', { replace: true })
+      }
     } catch (err) {
       if (isAxiosError(err) && err.response?.status === 401) {
         setError('Credenciais inválidas.')
@@ -69,9 +74,9 @@ export function Login() {
             <label className="login__field">
               <span className="login__field-row">
                 <span className="h-eyebrow">Senha</span>
-                <a className="login__forgot" href="#">
+                {/* <a className="login__forgot" href="#">
                   Esqueci a senha
-                </a>
+                </a> */}
               </span>
               <input
                 id="password"
@@ -85,14 +90,14 @@ export function Login() {
               />
             </label>
 
-            <label className="login__keep">
+            {/* <label className="login__keep">
               <input
                 type="checkbox"
                 checked={keepConnected}
                 onChange={(e) => setKeepConnected(e.target.checked)}
               />
               <span>Manter conectado por 7 dias</span>
-            </label>
+            </label> */}
 
             {error && (
               <p className="login__error" role="alert">
@@ -108,9 +113,9 @@ export function Login() {
               {isSubmitting ? 'Entrando…' : 'Entrar →'}
             </button>
 
-            <p className="login__hint">
+            {/* <p className="login__hint">
               Sem cadastro? <a href="#">Solicitar acesso ao gestor</a>
-            </p>
+            </p> */}
           </form>
         </div>
 

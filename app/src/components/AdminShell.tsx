@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { Logo } from './Logo'
-import { clearToken, clearUser } from '../lib/auth'
+import { clearToken, clearUser, getUser } from '../lib/auth'
 import './AdminShell.css'
 
 interface AdminShellProps {
@@ -11,13 +11,29 @@ interface AdminShellProps {
 const NAV_ITEMS: ReadonlyArray<{ to: string; label: string; glyph: string }> = [
   { to: '/admin/indicadores', label: 'Indicadores', glyph: '◇' },
   { to: '/admin/temas', label: 'Temas', glyph: '◈' },
+  { to: '/admin/ods', label: 'ODS', glyph: '◉' },
   { to: '/admin/estados', label: 'Estados', glyph: '◰' },
   { to: '/admin/municipios', label: 'Municípios', glyph: '◳' },
   { to: '/admin/usuarios', label: 'Usuários', glyph: '◔' },
 ]
 
+const ROLE_LABELS: Record<string, string> = {
+  ADMIN: 'Administrador',
+  GESTOR_PUBLICO: 'Gestor Público',
+}
+
+function initials(name: string): string {
+  return name
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((w) => w[0].toUpperCase())
+    .join('')
+}
+
 export function AdminShell({ children }: AdminShellProps) {
   const navigate = useNavigate()
+  const user = getUser()
 
   function handleLogout() {
     clearToken()
@@ -56,10 +72,14 @@ export function AdminShell({ children }: AdminShellProps) {
         </Link>
 
         <div className="admin-shell__user">
-          <div className="admin-shell__avatar">LV</div>
+          <div className="admin-shell__avatar">
+            {user ? initials(user.name) : '?'}
+          </div>
           <div className="admin-shell__user-info">
-            <span className="admin-shell__user-name">Lucas Vieira</span>
-            <span className="admin-shell__user-role">Administrador</span>
+            <span className="admin-shell__user-name">{user?.name ?? '—'}</span>
+            <span className="admin-shell__user-role">
+              {user ? (ROLE_LABELS[user.role] ?? user.role) : '—'}
+            </span>
           </div>
           <button
             type="button"
