@@ -251,3 +251,22 @@ A API pode iniciar sem esses arquivos. Funcionalidades que dependem dos microdad
 | `GESTOR_PUBLICO` | Acesso restrito aos recursos do município vinculado |
 
 O usuário admin padrão é criado pelo seed. Consulte o arquivo `api/src/database/seed/data/users.json` para as credenciais de demonstração.
+
+
+## Observação sobre o processamento inicial dos indicadores
+
+Para que o ambiente público do sistema funcione corretamente, é necessário realizar o processamento inicial dos indicadores após iniciar a aplicação.
+
+Esse processamento deve ser feito por um usuário com perfil de administrador.
+
+Fluxo recomendado:
+
+1. Iniciar a API.
+2. Iniciar o frontend.
+3. Acessar o sistema com usuário administrador.
+4. Processar cada um dos indicadores cadastrados.
+5. Acessar o ambiente público do mapa e do ranking quando logado com Gestor Público.
+
+Enquanto os indicadores não forem processados, as telas de mapa e ranking não apresentarão dados.
+
+Isso ocorre porque os dados exibidos nessas telas são derivados da tabela de indicadores calculados e da tabela de rankings, que são preenchidas a partir do processamento dos indicadores existentes.
