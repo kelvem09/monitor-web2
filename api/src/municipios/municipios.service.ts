@@ -7,6 +7,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Not, Repository } from 'typeorm';
 import { Municipio } from './entities/municipio.entity';
 import { Estado } from '../estados/entities/estado.entity';
+import { GestorMunicipal } from '../users/entities/gestor-municipal.entity';
 import { CreateMunicipioDto } from './dto/create-municipio.dto';
 import { UpdateMunicipioDto } from './dto/update-municipio.dto';
 
@@ -17,10 +18,32 @@ export class MunicipiosService {
     private readonly municipiosRepository: Repository<Municipio>,
     @InjectRepository(Estado)
     private readonly estadosRepository: Repository<Estado>,
+    @InjectRepository(GestorMunicipal)
+    private readonly gestorRepository: Repository<GestorMunicipal>,
   ) {}
 
   findAll(): Promise<Municipio[]> {
     return this.municipiosRepository.find({ order: { nome: 'ASC' } });
+  }
+
+  async findSemGestor(): Promise<Municipio[]> {
+    const gestoresAtivos = await this.gestorRepository.find({
+      where: { ativo: true },
+      relations: ['municipio'],
+    });
+    const idsComGestor = gestoresAtivos
+      .filter((g) => g.municipio)
+      .map((g) => g.municipio.id);
+
+    if (idsComGestor.length === 0) {
+      return this.municipiosRepository.find({ order: { nome: 'ASC' } });
+    }
+
+    return this.municipiosRepository
+      .createQueryBuilder('m')
+      .where('m.id NOT IN (:...ids)', { ids: idsComGestor })
+      .orderBy('m.nome', 'ASC')
+      .getMany();
   }
 
   async findById(id: number): Promise<Municipio> {

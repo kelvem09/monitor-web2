@@ -12,21 +12,21 @@ import { GestorMunicipal } from '../../users/entities/gestor-municipal.entity';
 @Entity('municipios')
 export class Municipio {
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
   @Column({ unique: true })
-  codigoIbge: number;
+  codigoIbge!: number;
 
   @Column()
-  nome: string;
+  nome!: string;
 
   @ManyToOne(() => Estado, (estado) => estado.municipios, {
     nullable: false,
     eager: true,
   })
   @JoinColumn()
-  estado: Estado;
+  estado!: Estado;
 
   @OneToOne(() => GestorMunicipal, (gestorMunicipal) => gestorMunicipal.municipio, { nullable: true })
-  gestorMunicipal: GestorMunicipal | null;
+  gestorMunicipal!: GestorMunicipal | null;
 }

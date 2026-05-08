@@ -6,6 +6,7 @@ import { useToast } from '../../components/toast-context'
 import {
   createUser,
   getUser,
+  listMunicipiosSemGestor,
   updateUser,
   USER_ROLE_DESCRIPTION,
   USER_ROLE_LABEL,
@@ -13,6 +14,7 @@ import {
   type UpdateUserPayload,
   type UserRole,
 } from '../../services/users.service'
+import type { Municipio } from '../../services/municipios.service'
 import './UsuarioForm.css'
 
 interface UsuarioFormProps {
@@ -32,6 +34,9 @@ export function UsuarioForm({ mode }: UsuarioFormProps) {
   const [password, setPassword] = useState('')
   const [role, setRole] = useState<UserRole>('GESTOR_PUBLICO')
   const [isActive, setIsActive] = useState(true)
+  const [municipioId, setMunicipioId] = useState<number | ''>(``)
+  const [municipios, setMunicipios] = useState<Municipio[]>([])
+  const [municipiosLoading, setMunicipiosLoading] = useState(false)
 
   const [loading, setLoading] = useState(mode === 'edit')
   const [submitting, setSubmitting] = useState(false)
@@ -46,6 +51,7 @@ export function UsuarioForm({ mode }: UsuarioFormProps) {
         setEmail(user.email)
         setRole(user.role)
         setIsActive(user.isActive)
+        if (user.municipio) setMunicipioId(user.municipio.id)
       })
       .catch((err) => {
         if (cancelled) return
@@ -64,6 +70,26 @@ export function UsuarioForm({ mode }: UsuarioFormProps) {
     }
   }, [mode, id, toast, navigate])
 
+  useEffect(() => {
+    if (role !== 'GESTOR_PUBLICO') return
+    let cancelled = false
+    setMunicipiosLoading(true)
+    listMunicipiosSemGestor()
+      .then((data) => {
+        if (cancelled) return
+        setMunicipios(data)
+      })
+      .catch(() => {
+        if (!cancelled) toast.error('Não foi possível carregar os municípios.')
+      })
+      .finally(() => {
+        if (!cancelled) setMunicipiosLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [role, toast])
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
 
@@ -77,6 +103,10 @@ export function UsuarioForm({ mode }: UsuarioFormProps) {
     }
     if (mode === 'create' && password.length < 6) {
       toast.error('A senha deve ter no mínimo 6 caracteres.')
+      return
+    }
+    if (role === 'GESTOR_PUBLICO' && !municipioId) {
+      toast.error('Selecione o município para o gestor público.')
       return
     }
     if (mode === 'edit' && password.length > 0 && password.length < 6) {
@@ -94,6 +124,7 @@ export function UsuarioForm({ mode }: UsuarioFormProps) {
           isActive,
         }
         if (password.length > 0) payload.password = password
+        if (role === 'GESTOR_PUBLICO' && municipioId) payload.municipioId = Number(municipioId)
         await updateUser(id, payload)
         toast.success(`Usuário ${payload.name} atualizado com sucesso.`)
       } else {
@@ -104,6 +135,7 @@ export function UsuarioForm({ mode }: UsuarioFormProps) {
           role,
           isActive,
         }
+        if (role === 'GESTOR_PUBLICO' && municipioId) payload.municipioId = Number(municipioId)
         await createUser(payload)
         toast.success(`Usuário ${payload.name} criado com sucesso.`)
       }
@@ -250,6 +282,34 @@ export function UsuarioForm({ mode }: UsuarioFormProps) {
                 </span>
               </label>
             </section>
+
+            {role === 'GESTOR_PUBLICO' && (
+              <section className="usuario-form__section">
+                <span className="h-eyebrow">4 · Vinculação Municipal</span>
+                <div className="usuario-form__grid">
+                  <label className="usuario-form__label" htmlFor="municipioId">
+                    Município
+                  </label>
+                  <select
+                    id="municipioId"
+                    className="input"
+                    value={municipioId}
+                    onChange={(e) => setMunicipioId(e.target.value === '' ? '' : Number(e.target.value))}
+                    required
+                    disabled={municipiosLoading}
+                  >
+                    <option value="">
+                      {municipiosLoading ? 'Carregando…' : 'Selecione um município'}
+                    </option>
+                    {municipios.map((m) => (
+                      <option key={m.id} value={m.id}>
+                        {m.nome}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </section>
+            )}
 
             <footer className="usuario-form__footer">
               <Link to="/admin/usuarios" className="btn">

@@ -1,5 +1,6 @@
 import { api } from '../lib/api'
 import type { User, UserRole } from './auth.service'
+import type { Municipio } from './municipios.service'
 
 export type { User, UserRole }
 
@@ -9,6 +10,7 @@ export interface CreateUserPayload {
   password: string
   role: UserRole
   isActive?: boolean
+  municipioId?: number
 }
 
 export interface UpdateUserPayload {
@@ -17,6 +19,7 @@ export interface UpdateUserPayload {
   password?: string
   role?: UserRole
   isActive?: boolean
+  municipioId?: number
 }
 
 export async function listUsers(): Promise<User[]> {
@@ -44,6 +47,11 @@ export async function updateUser(
 
 export async function deleteUser(id: number): Promise<User> {
   const { data } = await api.delete<User>(`/users/${id}`)
+  return data
+}
+
+export async function listMunicipiosSemGestor(): Promise<Municipio[]> {
+  const { data } = await api.get<Municipio[]>('/municipios/sem-gestor')
   return data
 }
 

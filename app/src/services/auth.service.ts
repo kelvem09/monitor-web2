@@ -2,12 +2,19 @@ import { api } from '../lib/api'
 
 export type UserRole = 'ADMIN' | 'GESTOR_PUBLICO'
 
+export interface UserMunicipio {
+  id: number
+  codigoIbge: number
+  nome: string
+}
+
 export interface User {
   id: number
   name: string
   email: string
   isActive: boolean
   role: UserRole
+  municipio?: UserMunicipio | null
   createdAt: string
   updatedAt: string
 }

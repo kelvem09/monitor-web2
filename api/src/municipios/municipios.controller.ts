@@ -37,6 +37,13 @@ export class MunicipiosController {
     return this.municipiosService.findAll();
   }
 
+  @Get('sem-gestor')
+  @ApiOperation({ summary: 'Listar municípios sem gestor público vinculado' })
+  @ApiOkResponse({ type: MunicipioResponseDto, isArray: true })
+  findSemGestor(): Promise<MunicipioResponseDto[]> {
+    return this.municipiosService.findSemGestor();
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Buscar município por ID' })
   @ApiParam({ name: 'id', type: Number })
