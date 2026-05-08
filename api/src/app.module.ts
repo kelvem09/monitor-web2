@@ -25,13 +25,15 @@ import { IndicadoresCalculadosModule } from './indicadores-calculados/indicadore
 import { Ranking } from './rankings/entities/ranking.entity';
 import { RankingsModule } from './rankings/rankings.module';
 import { GestorMunicipal } from './users/entities/gestor-municipal.entity';
+import { Ods } from './ods/entities/ods.entity';
+import { OdsModule } from './ods/ods.module';
 
 @Module({
   imports: [
     TypeOrmModule.forRoot({
       type: 'sqlite',
       database: ':memory:',
-      entities: [User, Estado, Municipio, BaseDados, Sinasc, Sim, TemaIndicador, Indicador, IndicadorCalculado, Ranking, GestorMunicipal],
+      entities: [User, Estado, Municipio, BaseDados, Sinasc, Sim, TemaIndicador, Indicador, IndicadorCalculado, Ranking, GestorMunicipal, Ods],
       synchronize: true,
       dropSchema: true,
     }),
@@ -46,6 +48,7 @@ import { GestorMunicipal } from './users/entities/gestor-municipal.entity';
     IndicadoresModule,
     IndicadoresCalculadosModule,
     RankingsModule,
+    OdsModule,
     SeedModule,
   ],
   controllers: [AppController],

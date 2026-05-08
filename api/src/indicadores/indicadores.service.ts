@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 import { Indicador } from './entities/indicador.entity';
 import { BaseDados } from '../bases/entities/base-dados.entity';
+import { Ods } from '../ods/entities/ods.entity';
 import { CreateIndicadorDto } from './dto/create-indicador.dto';
 import { UpdateIndicadorDto } from './dto/update-indicador.dto';
 
@@ -13,6 +14,8 @@ export class IndicadoresService {
     private readonly indicadorRepository: Repository<Indicador>,
     @InjectRepository(BaseDados)
     private readonly baseDadosRepository: Repository<BaseDados>,
+    @InjectRepository(Ods)
+    private readonly odsRepository: Repository<Ods>,
   ) {}
 
   findAll(): Promise<Indicador[]> {
@@ -47,11 +50,20 @@ export class IndicadoresService {
       }
     }
 
+    let ods: Ods | null = null;
+    if (data.odsId) {
+      ods = await this.odsRepository.findOne({ where: { id: data.odsId } });
+      if (!ods) {
+        throw new NotFoundException('ODS não encontrado');
+      }
+    }
+
     const indicador = this.indicadorRepository.create({
       ...data,
       tema: { id: data.temaId } as any,
       status: data.status ?? 'ATIVO',
       basesDados,
+      ods,
     });
     
     return this.indicadorRepository.save(indicador);
@@ -71,6 +83,18 @@ export class IndicadoresService {
         ? ({ id: data.temaId } as any)
         : indicador.tema,
     });
+
+    if ('odsId' in data) {
+      if (data.odsId === null || data.odsId === undefined) {
+        indicador.ods = null;
+      } else {
+        const ods = await this.odsRepository.findOne({ where: { id: data.odsId } });
+        if (!ods) {
+          throw new NotFoundException('ODS não encontrado');
+        }
+        indicador.ods = ods;
+      }
+    }
 
     if (data.basesDadosIds !== undefined) {
       if (data.basesDadosIds.length > 0) {

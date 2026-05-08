@@ -13,6 +13,7 @@ import { IndicadorCalculado } from '../../indicadores-calculados/entities/indica
 import { DirecaoInterpretativa } from './direcao-interpretativa.enum';
 import { Ranking } from '../../rankings/entities/ranking.entity';
 import { BaseDados } from '../../bases/entities/base-dados.entity';
+import { Ods } from '../../ods/entities/ods.entity';
 
 @Entity('indicador')
 export class Indicador {
@@ -24,9 +25,6 @@ export class Indicador {
 
   @Column({ name: 'meta_ods', nullable: true })
   metaOds!: string;
-
-  @Column({ name: 'numero_ods', nullable: true })
-  numeroOds!: number;
 
   @Column()
   nome!: string;
@@ -63,4 +61,8 @@ export class Indicador {
     inverseJoinColumn: { name: 'id_base_dados', referencedColumnName: 'id' },
   })
   basesDados!: BaseDados[];
+
+  @ManyToOne(() => Ods, (ods) => ods.indicadores, { nullable: true, eager: true })
+  @JoinColumn({ name: 'id_ods' })
+  ods!: Ods | null;
 }

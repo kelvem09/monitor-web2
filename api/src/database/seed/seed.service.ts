@@ -14,6 +14,7 @@ import { Sim } from '../../sim/entities/sim.entity';
 import { TemaIndicador } from '../../tema-indicador/entities/tema-indicador.entity';
 import { Indicador } from '../../indicadores/entities/indicador.entity';
 import { DirecaoInterpretativa } from '../../indicadores/entities/direcao-interpretativa.enum';
+import { Ods } from '../../ods/entities/ods.entity';
 
 interface EstadoSeedData {
   codigo: number;
@@ -53,6 +54,8 @@ export class SeedService implements OnModuleInit {
     private readonly temaIndicadorRepository: Repository<TemaIndicador>,
     @InjectRepository(Indicador)
     private readonly indicadorRepository: Repository<Indicador>,
+    @InjectRepository(Ods)
+    private readonly odsRepository: Repository<Ods>,
   ) {}
 
   async onModuleInit(): Promise<void> {
@@ -62,6 +65,7 @@ export class SeedService implements OnModuleInit {
     await this.seedSinasc();
     await this.seedSim();
     await this.seedTemasIndicadores();
+    await this.seedOds();
     await this.seedIndicadores();
   }
 
@@ -406,6 +410,24 @@ export class SeedService implements OnModuleInit {
     await this.temaIndicadorRepository.save(temas);
   }
 
+  private async seedOds(): Promise<void> {
+    const filePath = this.resolveJsonPath('ods-dados.json');
+    if (!filePath) return;
+
+    const items: { numeroOds: number; temaOds: string }[] = JSON.parse(
+      fs.readFileSync(filePath, 'utf-8'),
+    );
+
+    for (const item of items) {
+      const existing = await this.odsRepository.findOne({
+        where: { numeroOds: item.numeroOds },
+      });
+      if (!existing) {
+        await this.odsRepository.save(this.odsRepository.create(item));
+      }
+    }
+  }
+
   private async seedIndicadores(): Promise<void> {
     const filePath = this.resolveJsonPath('indicadores_dados.json');
     if (!filePath) return;
@@ -441,7 +463,6 @@ export class SeedService implements OnModuleInit {
       const indicador = this.indicadorRepository.create({
         previstoOds: item.previsto_ods,
         metaOds: item.meta_ods,
-        numeroOds: item.numero_ods,
         nome: item.nome,
         descricao: item.descricao,
         tema,

@@ -21,11 +21,6 @@ export class CreateIndicadorDto {
   @IsString()
   metaOds?: string;
 
-  @ApiProperty({ required: false, nullable: true })
-  @IsOptional()
-  @IsNumber()
-  numeroOds?: number;
-
   @ApiProperty()
   @IsString()
   nome!: string;
@@ -60,4 +55,10 @@ export class CreateIndicadorDto {
   @IsInt({ each: true })
   @Type(() => Number)
   basesDadosIds?: number[];
+
+  @ApiPropertyOptional({ example: 3 })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  odsId?: number;
 }

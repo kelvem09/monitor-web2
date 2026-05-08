@@ -8,11 +8,12 @@ import { Sinasc } from '../../sinasc/entities/sinasc.entity';
 import { Sim } from '../../sim/entities/sim.entity';
 import { TemaIndicador } from '../../tema-indicador/entities/tema-indicador.entity';
 import { Indicador } from '../../indicadores/entities/indicador.entity';
+import { Ods } from '../../ods/entities/ods.entity';
 import { SeedService } from './seed.service';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Estado, Municipio, User, BaseDados, Sinasc, Sim, TemaIndicador, Indicador]),
+    TypeOrmModule.forFeature([Estado, Municipio, User, BaseDados, Sinasc, Sim, TemaIndicador, Indicador, Ods]),
   ],
   providers: [SeedService],
 })
