@@ -31,8 +31,8 @@ export class IndicadoresCalculadosController {
     private readonly indicadoresCalculadosService: IndicadoresCalculadosService,
   ) {}
 
-  //@UseGuards(AuthGuard, RolesGuard)
-  //@Roles(UserRole.ADMIN, UserRole.GESTOR_PUBLICO)
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.GESTOR_PUBLICO)
   @Post('processar/:id')
   @ApiOperation({ summary: 'Processar indicador calculado pelo id do indicador' })
   @ApiQuery({ name: 'ano', required: false, type: Number })
