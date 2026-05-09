@@ -140,6 +140,20 @@ Essas consultas são utilizadas principalmente nos módulos de indicadores calcu
 
 ## Instalação e execução
 
+## Variáveis de ambiente
+
+Copie os arquivos de exemplo antes de rodar:
+
+```bash
+# API
+cp api/.env.example api/.env
+
+# Frontend
+cp app/.env.example app/.env
+```
+
+Os arquivos `.env.example` documentam todas as variáveis necessárias para cada ambiente.
+
 ### API
 
 ```bash
@@ -191,20 +205,6 @@ npm run build
 ```
 
 O resultado é gerado em `app/dist/`.
-
-## Variáveis de ambiente
-
-Copie os arquivos de exemplo antes de rodar:
-
-```bash
-# API
-cp api/.env.example api/.env
-
-# Frontend
-cp app/.env.example app/.env
-```
-
-Os arquivos `.env.example` documentam todas as variáveis necessárias para cada ambiente.
 
 ## Banco de dados
 
